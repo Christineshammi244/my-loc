@@ -1,93 +1,60 @@
-import prisma from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
-import bcrypt from 'bcryptjs'
+import prisma from "@/lib/prisma";
+import { createUserAction, deleteUserAction, updateUserAction } from "@/app/actions";
 
-export default async function Home() {
-  const users = await prisma.User.findMany()
-  async function addUser(formData) {
-    'use server'
-    const name = formData.get('name')
-    const email = formData.get('email')
-    const password = formData.get('password')
-    const hashedPassword = await bcrypt.hash(password, 10)
-    await prisma.User.create({
-      data: { 
-        name: formData.get('name'), 
-        email: formData.get('email'), 
-        password:hashedPassword 
-
-      }
-    })
-    revalidatePath('/')
-  }
-  async function updateUser(formData) {
-    'use server'
-    const id = formData.get('id')
-    const newName = formData.get('name')
-
-    await prisma.User.update({
-      where: { id: parseInt(id) },
-      data: { name: newName } 
-    })
-    revalidatePath('/')
-  }
-
-  async function deleteUser(formData) {
-    'use server'
-    await prisma.User.delete({
-      where: { id: parseInt(formData.get('id')) }
-    })
-    revalidatePath('/')
-  }
+export default async function UsersManagement() {
+  // جلب المستخدمين مباشرة من السيرفر
+  const users = await prisma.user.findMany({
+    orderBy: { id: "asc" },
+  });
 
   return (
-    <main style={{ padding: '50px', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <h1>إدارة المستخدمين (CRUD)</h1>
-      
-      {/* فورم الإضافة */}
-      <section style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px' }}>
+    <div style={{ padding: "40px", maxWidth: "800px", margin: "0 auto", fontFamily: "Arial" }}>
+      <h1 style={{ textAlign: "center", color: "#333" }}>إدارة المستخدمين</h1>
+
+      {/* --- قسم إضافة مستخدم جديد --- */}
+      <div style={{ background: "#f4f4f4", padding: "20px", borderRadius: "8px", marginBottom: "30px" }}>
         <h3>إضافة مستخدم جديد</h3>
-        <form action={addUser} style={{ display: 'flex', gap: '10px' }}>
-          <input type="text" name="name" placeholder="الاسم" required />
-          <input type="email" name="email" placeholder="الإيميل" required />
-          <input type="password" name="password" placeholder="الباسورد" required />
-          <button type="submit">إضافة</button>
+        <form action={createUserAction} style={{ display: "flex", gap: "10px", flexDirection: "column" }}>
+          <input name="name" placeholder="الاسم الكامل" required style={inputStyle} />
+          <input name="email" type="email" placeholder="البريد الإلكتروني" required style={inputStyle} />
+          <input name="password" type="password" placeholder="كلمة المرور" required style={inputStyle} />
+          <button type="submit" style={buttonStyle}>حفظ المستخدم</button>
         </form>
-      </section>
+      </div>
 
-      <hr style={{ margin: '40px 0' }} />
+      <hr />
 
-      <h2>المستخدمون الحاليون:</h2>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      {/* --- قائمة المستخدمين الحاليين --- */}
+      <h3>المستخدمون الحاليون</h3>
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {users.map((user) => (
-          <li key={user.id} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '15px', borderBottom: '1px solid #ddd' }}>
-            
-            {/* عرض البيانات مع فورم التعديل السريع */}
-            <form action={updateUser} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <li key={user.id} style={liStyle}>
+            {/* فورم التحديث (الذي كان فيه خطأ <for> سابقاً) */}
+            <form action={updateUserAction} style={{ display: "flex", gap: "10px", flex: 1 }}>
               <input type="hidden" name="id" value={user.id} />
-              <input 
-                type="text" 
-                name="name" 
-                defaultValue={user.name} 
-                style={{ padding: '5px', border: '1px solid #ccc' }}
-              />
-              <span style={{ fontSize: '14px', color: '#666' }}>({user.email})</span>
-              <button type="submit" style={{ backgroundColor: '#ffc107', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
-                تحديث الاسم
-              </button>
+              <input name="name" defaultValue={user.name} style={tableInputStyle} />
+              <input name="email" defaultValue={user.email} style={tableInputStyle} />
+              <button type="submit" style={updateButtonStyle}>تحديث</button>
             </form>
 
-            {/* زر الحذف */}
-            <form action={deleteUser}>
-              <input type="hidden" name="id" value={user.id} />
-              <button type="submit" style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
-                حذف
-              </button>
+            {/* زر الحذف المرتبط بالأكشن */}
+            <form action={async () => {
+              "use server";
+              await deleteUserAction(user.id);
+            }}>
+              <button type="submit" style={deleteButtonStyle}>حذف</button>
             </form>
-
           </li>
         ))}
       </ul>
-    </main>
-  )
+    </div>
+  );
 }
+
+// --- تنسيقات بسيطة (CSS-in-JS) لجمالية الصفحة ---
+const inputStyle = { padding: "10px", borderRadius: "4px", border: "1px solid #ccc" };
+const tableInputStyle = { padding: "5px", border: "1px solid #ddd", borderRadius: "4px", flex: 1 };
+const buttonStyle = { padding: "10px", background: "#28a745", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" };
+const updateButtonStyle = { padding: "5px 10px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" };
+const deleteButtonStyle = { padding: "5px 10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" };
+const liStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px", borderBottom: "1px solid #eee" };
