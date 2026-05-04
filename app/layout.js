@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
@@ -17,12 +18,13 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return (
+  return (<ClerkProvider>
     <html lang="ar" dir="rtl">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Toaster position="top-center" />
         {children}
       </body>
     </html>
+    </ClerkProvider>
   );
 }

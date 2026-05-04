@@ -3,10 +3,10 @@ provider = "prisma-client-js"
 }
 datasource db {
   provider = "sqlite"
-  url=  "file:./dev.db"
+  url     = "file:./dev.db"
 }
 model User {
-  id         Int        @id @default(autoincrement())
+  id         String       @id @default(uuid())
   name       String
   email      String     @unique
   password   String
@@ -14,6 +14,7 @@ model User {
   createdAt  DateTime   @default(now())
   properties Property[]
   comments   Comment[]
+  wishlists  Wishlist[]
 }
 model Property {
 id          Int      @id @default(autoincrement())
@@ -25,10 +26,11 @@ type        String
 category    String   
 status      String   @default("available") 
 createdAt   DateTime @default(now())
-ownerId     Int
+ownerId     String
 owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 comments    Comment[]
 images      Image[]
+wishlists  Wishlist[]
 }
 model Comment {
   id         Int      @id @default(autoincrement())
@@ -36,7 +38,7 @@ model Comment {
   createdAt  DateTime @default(now())
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  userId     Int
+  userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 model Image {
@@ -44,4 +46,14 @@ model Image {
   url        String
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+model Wishlist {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  propertyId Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId])
 }
