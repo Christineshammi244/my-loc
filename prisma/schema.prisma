@@ -1,59 +1,63 @@
 generator client {
-provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 datasource db {
-  provider = "sqlite"
-  url     = "file:./dev.db"
+    provider = "sqlite"
+    url = env("DATABASE_URL")
 }
 model User {
-  id         String       @id @default(uuid())
-  name       String
-  email      String     @unique
-  password   String
-  role       String     @default("user")  
-  createdAt  DateTime   @default(now())
-  properties Property[]
-  comments   Comment[]
-  wishlists  Wishlist[]
+    id         String     @id @default(uuid())
+    name       String
+    email      String     @unique
+    password   String
+    role       String     @default("user")
+    createdAt  DateTime   @default(now())
+    properties Property[]
+    comments   Comment[]
+    wishlists  Wishlist[]
 }
-model Property {
-id          Int      @id @default(autoincrement())
-title       String
-description String
-price       Float
-location    String
-type        String   
-category    String   
-status      String   @default("available") 
-createdAt   DateTime @default(now())
-ownerId     String
-owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-comments    Comment[]
-images      Image[]
-wishlists  Wishlist[]
-}
-model Comment {
-  id         Int      @id @default(autoincrement())
-  content    String
-  createdAt  DateTime @default(now())
-  propertyId Int
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-model Image {
-  id         Int      @id @default(autoincrement())
-  url        String
-  propertyId Int
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-}
-model Wishlist {
-  id         Int      @id @default(autoincrement())
-  userId     String
-  propertyId Int
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
 
-  @@unique([userId, propertyId])
+model Property {
+    id          Int        @id @default(autoincrement())
+    title       String
+    description String
+    price       Float
+    location    String
+    type        String
+    category    String
+    status      String     @default("available")
+    createdAt   DateTime   @default(now())
+    ownerId     String
+    owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    comments    Comment[]
+    images      Image[]
+    wishlists   Wishlist[]
+}
+
+model Comment {
+    id         Int      @id @default(autoincrement())
+    content    String
+    createdAt  DateTime @default(now())
+    propertyId Int
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    userId     String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Image {
+    id         Int      @id @default(autoincrement())
+    url        String
+    propertyId Int
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Wishlist {
+    id         Int      @id @default(autoincrement())
+    userId     String
+    propertyId Int
+    createdAt  DateTime @default(now())
+    user       User     @relation(fields: [userId], references: [id])
+    property   Property @relation(fields: [propertyId], references: [id])
+
+    @@unique([userId, propertyId])
 }

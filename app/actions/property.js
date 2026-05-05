@@ -1,22 +1,15 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
-// دالة جلب العقارات التي أضافها المستخدم الحالي فقط
+import  prisma  from "@/lib/prisma";
 export async function getMyPropertiesAction() {
-  // 1. جلب معرف المستخدم من Clerk
-    const { userId } = auth();
-
-  // 2. إذا لم يكن مسجلاً، نرجع قائمة فارغة
+    const { userId } =  await auth();
     if (!userId) {
     return [];
     }
 
     try {
-    // 3. البحث في جدول العقارات عن التي يملكها هذا الـ ID
+
     const myProperties = await prisma.property.findMany({
         where: {
         ownerId: userId, // الربط الذي قمنا به في مهمة المزامنة
@@ -28,7 +21,47 @@ export async function getMyPropertiesAction() {
 
     return myProperties;
     } catch (error) {
-    console.error("خطأ في جلب عقاراتي:", error);
+      console.error("خطأ في جلب عقاراتي:", error);
     return [];
     }
+}
+
+
+  export async function createProperty(formData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("غير مصرح لك");
+
+  try {
+    const property = await prisma.property.create({
+      data: {
+        title: formData.get("title"),
+        description: formData.get("description"),
+        price: parseFloat(formData.get("price")),
+        location: formData.get("location"),
+        type: formData.get("type"),
+        category: formData.get("category"),
+        ownerId: userId, // ربط العقار بـ Clerk User ID
+      },
+    });
+    return { success: true, property };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "فشل في إضافة العقار" };
+  }
+}
+export async function deletePropertyAction(propertyId) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("غير مصرح لك");
+
+  try {
+    await prisma.property.delete({
+      where: {
+        id: propertyId,
+        ownerId: userId, // للأمان: لا يحذف العقار إلا صاحبه
+      },
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "فشل الحذف" };
+  }
 }

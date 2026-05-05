@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.8",
-    "@prisma/client": "^7.8.0",
+    "@prisma/client": "5.10.2",
     "next": "latest",
     "next-cloudinary": "^6.17.5",
     "react": "latest",
@@ -23,7 +23,7 @@
     "@types/react-dom": "latest",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.10",
-    "prisma": "^7.8.0",
+    "prisma": "5.10.2",
     "tailwindcss": "^4.2.3",
     "typescript": "latest"
   }
