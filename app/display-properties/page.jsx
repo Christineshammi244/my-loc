@@ -1,13 +1,22 @@
 import prisma from "@/lib/prisma"; // تأكدي أن هذا الملف موجود في مجلد lib
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-
+import { deletePropertyAction } from "../actions/property";
+import { revalidatePath } from "next/cache";
 export default async function DisplayProperties() {
-  const { userId } = auth(); 
+  const { userId } = await auth(); 
   const properties = await prisma.property.findMany({
     orderBy: { createdAt: "desc" },
   });
-
+async function handleDelete(formData) {
+    "use server";
+    const propertyId = parseInt(formData.get("propertyId"));
+    await deletePropertyAction(propertyId);
+    
+    // هذا السطر مهم جداً لتحديث الصفحة فوراً بعد الحذف
+    // تأكدي من استيراده في الأعلى: import { revalidatePath } from "next/cache";
+    revalidatePath("/display-properties");
+  }
   return (
     <div style={{ padding: "40px", backgroundColor: "#f4f7f6", minHeight: "100vh", direction: "rtl" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
@@ -28,15 +37,36 @@ export default async function DisplayProperties() {
               <span style={{ fontWeight: "bold", color: "#27ae60" }}>{item.price}$</span>
               
               {/* هنا الأمان: زر الحذف يظهر فقط لصاحب العقار */}
-              {userId === item.ownerId && (
-                <button style={{ backgroundColor: "#e74c3c", color: "white", border: "none", padding: "5px 12px", borderRadius: "5px", cursor: "pointer" }}>
-                  حذف 🗑
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+              {userId === item.ownerId && (  
+          <form action={handleDelete}>
+    {/* نرسل الـ id تبع العقار بشكل مخفي عشان نعرف شو بدنا نحذف */}
+    <input type="hidden" name="propertyId" value={item.id} />
+    
+    <button 
+      type="submit" 
+      style={{ 
+        backgroundColor: "#e74c3c", 
+        color: "white", 
+        padding: "5px 10px", 
+        borderRadius: "5px", 
+        border: "none", 
+        cursor: "pointer",
+        marginTop: "10px" 
+      }}
+      onClick={(e) => {
+        if (!confirm("هل أنت متأكد من حذف هذا العقار؟")) {
+          e.preventDefault(); // إذا كنسل المستخدم، ما بنبعث الطلب للسيرفر
+        }
+      }}
+    >
+      حذف العقار 🗑️
+    </button>
+  </form>
+)}
       </div>
+    </div>
+        ))}
+    </div>
     </div>
   );
 }

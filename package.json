@@ -9,9 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@clerk/nextjs": "^7.3.0",
     "@clerk/shared": "^4.9.0",
     "@prisma/client": "^5.10.2",
+=======
+    "@clerk/nextjs": "^7.2.8",
+    "@prisma/client": "5.10.2",
+>>>>>>> 1d4020fa0092a240060941b6217d14a22b8483d7
     "next": "latest",
     "next-cloudinary": "^6.17.5",
     "react": "latest",
@@ -24,7 +29,11 @@
     "@types/react-dom": "latest",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.10",
+<<<<<<< HEAD
     "prisma": "^5.10.2",
+=======
+    "prisma": "5.10.2",
+>>>>>>> 1d4020fa0092a240060941b6217d14a22b8483d7
     "tailwindcss": "^4.2.3",
     "typescript": "latest"
   }
