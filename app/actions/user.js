@@ -17,12 +17,12 @@ export async function syncUser() {
     return await prisma.user.upsert({
         where: { id: userId },
         update: {
-            name: ${user.firstName || ""} ${user.lastName || ""},
+            name:` ${user.firstName || ""} ${user.lastName || ""}`,
         },
         create: {
             id: userId,
             email: email,
-            name: ${user.firstName || ""} ${user.lastName || ""},
+            name: `${user.firstName || ""} ${user.lastName || ""}`,
             role: email === "your-email@gmail.com" ? "admin" : "user",
         },
     });

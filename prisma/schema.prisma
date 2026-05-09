@@ -48,7 +48,9 @@ model Property {
     title       String
     description String
     price       Float
+    rooms       Int       @default(0)     
     location    String
+    city        String
     type        String
     category    String
     status      String     @default("available")
