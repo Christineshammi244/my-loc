@@ -1,72 +1,83 @@
-import prisma from "@/lib/prisma"; // تأكدي أن هذا الملف موجود في مجلد lib
-import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
-import { deletePropertyAction } from "../actions/property";
-import { revalidatePath } from "next/cache";
-export default async function DisplayProperties() {
-  const { userId } = await auth(); 
-  const properties = await prisma.property.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-async function handleDelete(formData) {
-    "use server";
-    const propertyId = parseInt(formData.get("propertyId"));
-    await deletePropertyAction(propertyId);
-    
-    // هذا السطر مهم جداً لتحديث الصفحة فوراً بعد الحذف
-    // تأكدي من استيراده في الأعلى: import { revalidatePath } from "next/cache";
-    revalidatePath("/display-properties");
-  }
-  return (
-    <div style={{ padding: "40px", backgroundColor: "#f4f7f6", minHeight: "100vh", direction: "rtl" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-        <h1 style={{ color: "#333" }}>🏠 العقارات المتاحة</h1>
-        <Link href="/add-property">
-          <button style={{ backgroundColor: "#3498db", color: "white", padding: "10px 20px", borderRadius: "8px", border: "none", cursor: "pointer" }}>
-            + إضافة عقار
-          </button>
-        </Link>
-      </div>
+import prisma from "@/lib/prisma";
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "25px" }}>
-        {properties.map((item) => (
-          <div key={item.id} style={{ backgroundColor: "white", padding: "20px", borderRadius: "15px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <h3 style={{ color: "#2c3e50" }}>{item.title}</h3>
-            <p style={{ color: "#7f8c8d" }}>{item.description}</p>
-            <div style={{ marginTop: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: "bold", color: "#27ae60" }}>{item.price}$</span>
-              
-              {/* هنا الأمان: زر الحذف يظهر فقط لصاحب العقار */}
-              {userId === item.ownerId && (  
-          <form action={handleDelete}>
-    {/* نرسل الـ id تبع العقار بشكل مخفي عشان نعرف شو بدنا نحذف */}
-    <input type="hidden" name="propertyId" value={item.id} />
-    
-    <button 
-      type="submit" 
-      style={{ 
-        backgroundColor: "#e74c3c", 
-        color: "white", 
-        padding: "5px 10px", 
-        borderRadius: "5px", 
-        border: "none", 
-        cursor: "pointer",
-        marginTop: "10px" 
-      }}
-      onClick={(e) => {
-        if (!confirm("هل أنت متأكد من حذف هذا العقار؟")) {
-          e.preventDefault(); // إذا كنسل المستخدم، ما بنبعث الطلب للسيرفر
-        }
-      }}
-    >
-      حذف العقار 🗑️
-    </button>
-  </form>
-)}
-      </div>
-    </div>
-        ))}
-    </div>
+export default async function DisplayPropertiesPage() {
+  // جلب المعاملات من قاعدة البيانات مع بيانات العقار والشخص المرتبط بها
+  const transactions = await prisma.transaction.findMany({
+    include: {
+      property: true, // لجلب اسم العقار وسعره
+      user: true, // لجلب اسم الشخص الذي قام بالمعاملة
+    },
+    orderBy: {
+      createdAt: "desc", // عرض الأحدث دائماً في الأعلى
+    },
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto p-8">
+      <header className="mb-8 border-b pb-4">
+        <h1 className="text-3xl font-extrabold text-gray-800">سجل المعاملات</h1>
+        <p className="text-gray-500">
+          عرض جميع المعاملات المالية الموثقة في النظام
+        </p>
+      </header>
+
+      {transactions.length === 0 ? (
+        <div className="text-center py-10 bg-gray-50 rounded-lg border-2 border-dashed">
+          <p className="text-gray-400">لا توجد معاملات مسجلة حالياً.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {transactions.map((trx) => (
+            <div
+              key={trx.id}
+              className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-xs font-mono bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                    {trx.reference}
+                  </span>
+                  <h2 className="text-xl font-bold mt-2 text-gray-800">
+                    {trx.property?.title || "عقار غير معروف"}
+                  </h2>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-green-600">
+                    ${trx.amount.toLocaleString()}
+                  </p>
+                  <span className="text-sm text-gray-400">
+                    {new Date(trx.createdAt).toLocaleDateString("ar-EG")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                    👤
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-xs">بواسطة</p>
+                    <p className="font-medium text-gray-700">
+                      {trx.user?.name || "مستخدم مجهول"}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    trx.status === "COMPLETED"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {trx.status}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

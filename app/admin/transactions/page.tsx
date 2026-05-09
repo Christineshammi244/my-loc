@@ -1,4 +1,7 @@
+"use client";
 import Image from "next/image";
+import {approveTransaction} from "../../actions/transactionActions";
+import {rejectTransaction} from "../../actions/transactionActions";
 import {
   BarChart3,
   Check,
@@ -8,11 +11,17 @@ import {
   XCircle,
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { traceProcessWarnings } from "process";
 
 const buildingImg =
   "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80";
 
 export default function TransactionsPage() {
+  const transaction = {
+    id:"cmoxzssu40000uzj8f2c2vqw0",
+    userId:"e56d87ad-4b28-4d06-8b20-ebac623cfbc4",
+    propertyId: 1,
+  };
   return (
     <AdminShell
       activeNav="transactions"
@@ -166,18 +175,36 @@ export default function TransactionsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-6 py-4">
-                <button
-                  type="button"
-                  className="inline-flex flex-1 min-w-[200px] items-center justify-center rounded-xl bg-[#00A76F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#009660]"
-                >
-                  قبول المعاملة واعتماد النقل
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex flex-1 min-w-[200px] items-center justify-center rounded-xl border-2 border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                >
-                  رفض الطلب مع ذكر السبب
-                </button>
+                
+          <button 
+  disabled={transaction.status === "COMPLETED"} // تعطيل الزر إذا اكتملت المعاملة
+  onClick={async () => {
+    const res = await approveTransaction(transaction.id, transaction.userId, transaction.propertyId);
+    if (res.success) {
+      alert("تمت الموافقة ونقل الملكية بنجاح! 🎉");
+      window.location.reload(); // تحديث الصفحة لرؤية الحالة الجديدة
+    }
+  }}
+  className={`p-3 rounded-lg ${transaction.status === "COMPLETED" ? "bg-gray-400" : "bg-[#2DD4BF] text-white"}`}
+>
+  {transaction.status === "COMPLETED" ? "تمت الموافقة" : "قبول المعاملة ونقل الملكية"}
+</button>
+            
+               <button 
+  onClick={async () => {
+    if (confirm("هل أنت متأكد من رفض هذه المعاملة؟")) {
+      const result = await rejectTransaction("cmoxzssu40000uzj8f2c2vqw0"); // مرر الـ ID الخاص بالمعاملة
+      
+      if (result.success) {
+        alert("تم رفض المعاملة بنجاح ❌");
+        window.location.reload();
+      }
+    }
+  }}
+  className="text-red-500 text-xs border-b border-red-500 ..." // الكلاسات الأصلية لزر الرفض عندك
+>
+  رفض الطلب مع ذكر السبب
+</button>
                 <button
                   type="button"
                   className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"

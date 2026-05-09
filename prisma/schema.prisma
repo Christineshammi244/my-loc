@@ -17,14 +17,32 @@ model User {
     properties Property[]
     comments   Comment[]
     wishlists  Wishlist[]
+    transaction Transaction[]
 }
 model Transaction {
-  id        String   @id @default(cuid())
-  amount    Float
-  status    String
-  createdAt DateTime @default(now())
-   
+  id              String   @id @default(cuid())
+  reference       String   @unique // لتخزين كود مثل TRX-9928#
+  type            String   // "مشتري" أو "بائع" (حسب نوع الطلب اللي قدمه اليوزر)
+  amount          Float
+  status          String   @default("PENDING") // قيد الانتظار، موافق عليه، مرفوض
+  
+  // بيانات الطرف الآخر (تُعبأ يدوياً من الفرونت أو حسب الطلب)
+  otherPartyName  String?  // مثل "لينا يوسف" الظاهرة في الصورة
+  otherPartyPhone String?  // رقم الهاتف الظاهر
+  otherPartyAddress String? // العنوان
+  
+  // ربط المعاملة باليوزر اللي عملها
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  
+  // ربطها بالعقار المعني
+  propertyId      Int
+  property        Property @relation(fields: [propertyId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
+
 model Property {
     id          Int        @id @default(autoincrement())
     title       String
@@ -40,6 +58,7 @@ model Property {
     comments    Comment[]
     images      Image[]
     wishlists   Wishlist[]
+    transaction Transaction[]
 }
 
 model Comment {
