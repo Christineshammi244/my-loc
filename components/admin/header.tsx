@@ -4,7 +4,7 @@ type HeaderProps = {
   searchPlaceholder: string;
 };
 
-export function Header({ searchPlaceholder }: HeaderProps) {
+export  function Header({ searchPlaceholder }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur">
       <div className="relative min-w-[200px] flex-1 max-w-2xl">

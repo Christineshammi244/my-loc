@@ -1,91 +1,86 @@
 "use server"
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma"; // التعديل 1: استخدام الملف الجاهز لتجنب كثرة الاتصالات
 import { revalidatePath } from "next/cache";
 
-const prisma = new PrismaClient();
-
-// 1. مهمتكِ الأساسية: مزامنة مستخدم Clerk مع قاعدة بيانات Prisma
+// 1. مزامنة المستخدم (تحديث أو إنشاء)
 export async function syncUser() {
-const { userId } = auth();
+    const { userId } = await auth(); // أضفنا await لتوافق Next.js 15
     if (!userId) return;
 
-const user = await currentUser();
+    const user = await currentUser();
     if (!user) return;
-const email = user.emailAddresses[0].emailAddress;
+    const email = user.emailAddresses[0].emailAddress;
 
-  // البحث عن المستخدم في قاعدة بياناتك
-const dbUser = await prisma.user.findUnique({
-    where: { email: email },
-});
-
-  // إذا لم يكن موجوداً، ننشئه (بدون كلمة سر لأن Clerk يحميها)
-if (!dbUser) {
-    const isAdminEmail = email === "your-email@gmail.com"; // ضعي إيميلك هنا
-
-    await prisma.user.create({
-data: {
-        id: userId, // نستخدم معرف Clerk كمعرف في قاعدة بياناتنا للسهولة
-        email: email,
-        name: `${user.firstName || ""} ${user.lastName || ""}`,
-        role: isAdminEmail ? "admin" : "user",
-},
-    });
-    console.log("تمت المزامنة بنجاح"); }
-}
-
-// 2. تعديل كود رفيقتكِ ليعمل مع Clerk (إضافة عقار)
-export async function createPropertyAction(formData) {
-try {
-    const { userId } = auth(); // نأخذ معرف المستخدم الحقيقي المسجل دخوله
-    if (!userId) {
-    return { success: false, error: "يجب تسجيل الدخول أولاً" };
-    }
-
-    const title = formData.get("title");
-    const description = formData.get("description");
-    const price = parseFloat(formData.get("price")) || 0;
-    const location = formData.get("location");
-    const type = formData.get("type");
-    const category = formData.get("category");
-    const imageUrl = formData.get("imageUrl"); // الرابط القادم من Cloudinary
-
-    const newProperty = await prisma.property.create({
-    data: {
-        title,
-        description,
-        price,
-        location,
-        type,
-        category,
-        image: imageUrl,
-        ownerId: userId, // نربط العقار بصاحبه الحقيقي من Clerk
+    // التعديل 2: استخدام upsert (إذا موجود حدثه، إذا مو موجود أنشئه)
+    return await prisma.user.upsert({
+        where: { id: userId },
+        update: {
+            name: ${user.firstName || ""} ${user.lastName || ""},
+        },
+        create: {
+            id: userId,
+            email: email,
+            name: ${user.firstName || ""} ${user.lastName || ""},
+            role: email === "your-email@gmail.com" ? "admin" : "user",
         },
     });
-
-    revalidatePath("/display-properties");
-    return { success: true };
-} 
-catch (error) {
-    console.error("خطأ أثناء الحفظ:", error);
-    return { success: false, error: "حدث خطأ في السيرفر" };
-}
 }
 
-// 3. كود حذف العقار (معدل ليكون أكثر أماناً)
+// 2. إضافة عقار (مع التحقق من البيانات)
+export async function createPropertyAction(formData) {
+    try {
+        const { userId } = await auth();
+        if (!userId) return { success: false, error: "يجب تسجيل الدخول أولاً" };
+
+        // التعديل 3: التأكد من وجود القيم الأساسية قبل الحفظ
+        const data = {
+            title: formData.get("title"),
+            description: formData.get("description"),
+            price: parseFloat(formData.get("price")) || 0,
+            location: formData.get("location"),
+            image: formData.get("imageUrl"),
+            ownerId: userId,
+        };
+
+        if (!data.title || !data.location) {
+            return { success: false, error: "العنوان والموقع مطلوبان" };
+        }
+
+        await prisma.property.create({ data });
+
+        revalidatePath("/display-properties");
+        revalidatePath("/admin/properties");
+        return { success: true };
+    } catch (error) {
+        console.error("خطأ:", error);
+        return { success: false, error: "فشل في حفظ العقار" };
+    }
+}
+
+// 3. حذف العقار (إضافة حماية الملكية)
 export async function deletePropertyAction(id) {
     try {
-    const { userId } = auth();
-    if (!userId) return { success: false, error: "غير مصرح لك" };
+        const { userId } = await auth();
+        if (!userId) return { success: false, error: "غير مصرح لك" };
 
-    await prisma.property.delete({
-where: { id: Number(id) },
-    });
-    
-    revalidatePath("/display-properties");
-    return { success: true };
-} catch (error) {
-    return { success: false, error: "فشل حذف العقار" };
-}
+        // التعديل 4: التحقق أن المستخدم هو المالك قبل الحذف
+        const property = await prisma.property.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!property || property.ownerId !== userId) {
+            return { success: false, error: "لا تملك صلاحية حذف هذا العقار" };
+        }
+
+        await prisma.property.delete({
+            where: { id: Number(id) },
+        });
+        
+        revalidatePath("/display-properties");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "حدث خطأ أثناء الحذف" };
+    }
 }

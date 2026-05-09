@@ -43,6 +43,7 @@ export async function getMyPropertiesAction() {
         ownerId: userId, // ربط العقار بـ Clerk User ID
       },
     });
+    revalidatePath("/properties") // لتحديث القائمة فوراً
     return { success: true, property };
   } catch (error) {
     console.error(error);

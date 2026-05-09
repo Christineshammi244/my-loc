@@ -157,6 +157,7 @@ export default function TransactionsPage() {
                     src={buildingImg}
                     alt="صورة العقار"
                     fill
+                    unoptimized
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 66vw"
                     priority
