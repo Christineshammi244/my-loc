@@ -25,22 +25,20 @@ model Transaction {
   type            String   // "مشتري" أو "بائع" (حسب نوع الطلب اللي قدمه اليوزر)
   amount          Float
   status          String   @default("PENDING") // قيد الانتظار، موافق عليه، مرفوض
-  
-  // بيانات الطرف الآخر (تُعبأ يدوياً من الفرونت أو حسب الطلب)
-  otherPartyName  String?  // مثل "لينا يوسف" الظاهرة في الصورة
-  otherPartyPhone String?  // رقم الهاتف الظاهر
-  otherPartyAddress String? // العنوان
-  
-  // ربط المعاملة باليوزر اللي عملها
+  otherPartyName  String?  
+  otherPartyAddress String?
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  
-  // ربطها بالعقار المعني
   propertyId      Int
   property        Property @relation(fields: [propertyId], references: [id])
-
+  isIdentityVerified Boolean @default(false)
+  isTitleDeedValid Boolean @default(false)
+  isPriceMatched Boolean @default(false)
+  isSigned Boolean @default(false)
+  isContractReviewed Boolean @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
 }
 
 model Property {

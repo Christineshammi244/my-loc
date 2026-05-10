@@ -75,3 +75,58 @@ export async function rejectTransaction(transactionId) {
     return { success: false, error: error.message };
   }
 }
+export async function updateChecklist(transactionId, fieldName, value) {
+  try {
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: { [fieldName]: value }, // هنا نحدث الحقل المطلوب ديناميكياً
+    })
+    revalidatePath("/admin/transactions") 
+    return { success: true }
+  } catch (error) {
+    return { success: false }
+  }
+  revalidatePath("/admin/transactions") ;
+
+}
+// داخل ملف app/actions/transactionActions.js
+
+export async function getStats() {
+  // هون عم نطلب من بريزما تعدلنا السجلات بناءً على حالتها
+  const total = await prisma.transaction.count();
+  const pending = await prisma.transaction.count({ where: { status: 'PENDING' } });
+  const approved = await prisma.transaction.count({ where: { status: 'COMPLETED' } });
+  const rejected = await prisma.transaction.count({ where: { status: 'REJECTED' } });
+
+  return { total, pending, approved, rejected };
+}
+export async function getRecentTransactions() {
+  const transactions = await prisma.transaction.findMany({
+    take: 10, // جلب آخر 10 عمليات
+    orderBy: {
+      createdAt: 'desc' // الترتيب من الأحدث للأقدم
+    },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true
+    }
+  });
+  return transactions;
+}
+export async function getTransactionById(id) {
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: id },
+      // هاد السطر بيضمن إن كل البيانات (بائع، مشتري، عقار، تاريخ) توصل
+      include: {
+        user: true,
+        property: true,
+      }
+    });
+    return transaction;
+  } catch (error) {
+    console.error("Error fetching transaction:", error);
+    return null;
+  }
+}

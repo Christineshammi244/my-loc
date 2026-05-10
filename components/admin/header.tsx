@@ -2,16 +2,24 @@ import { Bell, Search, Settings } from "lucide-react";
 
 type HeaderProps = {
   searchPlaceholder: string;
+  searchValue?: string;
+  onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchClick?: () => void;
 };
 
-export  function Header({ searchPlaceholder }: HeaderProps) {
+export  function Header({ searchPlaceholder , searchValue, onSearchChange, onSearchClick }: HeaderProps) {
   return (
+
+
     <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur">
       <div className="relative min-w-[200px] flex-1 max-w-2xl">
         <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
         <input
           type="search"
           placeholder={searchPlaceholder}
+          value={searchValue}
+          onChange={onSearchChange}
+           onKeyDown={(e) => e.key === 'Enter' && onSearchClick?.()} // للبحث عند ضغط Enter
           className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pr-11 pl-4 text-sm text-slate-800 outline-none ring-[#00A76F]/30 transition placeholder:text-slate-400 focus:border-[#00A76F] focus:bg-white focus:ring-2"
         />
       </div>

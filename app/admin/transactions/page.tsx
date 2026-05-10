@@ -1,7 +1,13 @@
+
 "use client";
 import Image from "next/image";
 import {approveTransaction} from "../../actions/transactionActions";
 import {rejectTransaction} from "../../actions/transactionActions";
+import {useState,useEffect} from "react";
+import {updateChecklist} from "../../actions/transactionActions";
+import {getStats} from "../../actions/transactionActions";
+import {getRecentTransactions} from "../../actions/transactionActions"
+import {getTransactionById} from "../../actions/transactionActions";
 import {
   BarChart3,
   Check,
@@ -12,20 +18,68 @@ import {
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { traceProcessWarnings } from "process";
+import { StatsFs } from "fs";
 
 const buildingImg =
   "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80";
 
 export default function TransactionsPage() {
-  const transaction = {
+  const [currentTransaction, setCurrentTransaction] = useState({
     id:"cmoxzssu40000uzj8f2c2vqw0",
     userId:"e56d87ad-4b28-4d06-8b20-ebac623cfbc4",
     propertyId: 1,
+    isTitleDeedValid: false,
+    isIdentityVerified: false,
+    status: "PENDING",
+    isPriceMatched: false,
+    isSigned: false,
+    isContractReviewed: false,
+    createdAt: new Date().toISOString()
+  });
+// 1. تعريف الحالة (State) للأرقام
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  // 2. دالة لجلب البيانات وتحديث الحالة (منفصلة عشان نستخدمها بكل مكان)
+  const refreshStats = async () => {
+    const stats = await getStats();
+    setStats(stats);
+    const data = await getTransactionById(currentTransaction?.id);
+    if (data) setCurrentTransaction(data as any);
   };
+  const [searchId, setSearchId] = useState("");
+  const handleSearch = async () => {
+  if (!searchId) return; // لا تفعل شيئاً إذا كان الحقل فارغاً
+  
+  const data = await getTransactionById(searchId);
+  if (data) {
+    setCurrentTransaction(data as any);
+    setRecentTransactions([data as any]);
+    // يمكنك إضافة منطق هنا لإظهار النتائج أو الانتقال لصفحة المعاملة
+  } else {
+    alert("المعاملة غير موجودة");
+  }
+};
+const checklistItems = [
+  { label: "التحقق من الهوية الشخصية", field: "isIdentityVerified", status: currentTransaction?.isIdentityVerified },
+  { label: "التحقق من صك الملكية", field: "isTitleDeedValid", status: currentTransaction?.isTitleDeedValid },
+  { label: "مطابقة السعر المتفق عليه", field: "isPriceMatched", status: currentTransaction?.isPriceMatched },
+  { label: "توقيع الطلبات والوثائق", field: "isSigned", status: currentTransaction?.isSigned },
+  { label: "مراجعة عقد الضمان", field: "isContractReviewed", status: currentTransaction?.isContractReviewed },
+];
+ // 3. جلب البيانات أول ما تفتح الصفحة
+  useEffect(() => {
+    refreshStats();
+  }, []);
+  // هذا السطر بيفحص إذا كل العناصر بـ checklistItems حالتها true
+const isChecklistComplete = checklistItems.every(item => item.status === true);
+
   return (
-    <AdminShell
+    <AdminShell 
       activeNav="transactions"
       searchPlaceholder="بحث عن معاملة..."
+      searchValue={searchId}
+      onSearchChange={(e:any) => setSearchId(e.target.value)}
+      onSearchClick={handleSearch} 
     >
       <div className="mx-auto max-w-[1400px] space-y-6">
         <div>
@@ -42,25 +96,25 @@ export default function TransactionsPage() {
           {[
             {
               label: "إجمالي العمليات",
-              value: "1,515",
+              value: stats.total.toLocaleString(),
               icon: BarChart3,
               iconBg: "bg-sky-100 text-sky-600",
             },
             {
               label: "طلبات مرفوضة",
-              value: "89",
+              value: stats.rejected.toLocaleString(),
               icon: XCircle,
               iconBg: "bg-red-100 text-red-600",
             },
             {
               label: "موافَق عليها",
-              value: "1,402",
+              value: stats.approved.toLocaleString(),
               icon: CheckCircle2,
               iconBg: "bg-emerald-100 text-emerald-600",
             },
             {
               label: "قيد الانتظار",
-              value: "24",
+              value: stats.pending.toLocaleString(),
               icon: ClipboardList,
               iconBg: "bg-indigo-100 text-indigo-600",
             },
@@ -87,17 +141,33 @@ export default function TransactionsPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
-                <div>
-                  <p className="text-lg font-bold text-slate-900">
-                    معاملة #TRX-9928
-                  </p>
-                  <p className="text-sm text-slate-500">24 مايو 2024</p>
-                </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                  بانتظار الموافقة النهائية
-                </span>
-              </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+  <div>
+    {/* عرض آخر 4 أرقام من الـ ID الحقيقي */}
+    <p className="text-lg font-bold text-slate-900">
+      معاملة #TRX-{currentTransaction.id.toString().slice(0,6)}
+    </p>
+    {/* عرض تاريخ إنشاء المعاملة الحقيقي من الباك أند */}
+    <p className="text-sm text-slate-500">
+      {(currentTransaction as any)?.createdAt ? 
+    new Date((currentTransaction as any).createdAt).toLocaleDateString('ar-SA', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }) : 
+    "جاري تحميل التاريخ..."}
+</p>
+  </div>
+
+  {/* حالة المعاملة: لون يتغير حسب الحالة */}
+  <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+    currentTransaction.status === "COMPLETED" 
+    ? "bg-emerald-100 text-emerald-700" 
+    : "bg-amber-100 text-amber-700"
+  }`}>
+    {currentTransaction.status === "COMPLETED" ? "تم تثبيت الملكية" : "بانتظار الموافقة النهائية"}
+  </span>
+</div>
 
               <div className="grid gap-4 p-6 md:grid-cols-2">
                 <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
@@ -105,13 +175,13 @@ export default function TransactionsPage() {
                     البائع (المالك الحالي)
                   </p>
                   <p className="mt-2 font-semibold text-slate-900">
-                    سامر الحسن
+                    {(currentTransaction as any)?.user?.name || "بائع غير معروف"}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    الهوية: 01234567890
+                    البريد:{(currentTransaction as any)?.user?.email || "لا يوجد ايميل"}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    العنوان: دمشق، المزة
+                    {(currentTransaction as any)?.user?.role||"غير متوفر"}
                   </p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
@@ -119,13 +189,13 @@ export default function TransactionsPage() {
                     المشتري (المالك الجديد)
                   </p>
                   <p className="mt-2 font-semibold text-slate-900">
-                    لينا يوسف
+                    {(currentTransaction as any)?.otherPartyName || "مشتري غير معرف"}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    الهوية: 01987654321
+                البريد: {(currentTransaction as any)?.otherPartyId || "لا يوجد بريد المشتري"}
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    العنوان: دمشق، أبو رمانة
+                  {(currentTransaction as any)?.otherPartyAddress || "عنوان غير محدد"}
                   </p>
                 </div>
               </div>
@@ -138,24 +208,30 @@ export default function TransactionsPage() {
                   <ul className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
                     <li>
                       <span className="text-slate-400">النوع: </span>
-                      شقة سكنية
+                      {(currentTransaction as any)?.property?.type || "غير متوفر"}
                     </li>
                     <li>
                       <span className="text-slate-400">الموقع: </span>
-                      دمشق
+                      {(currentTransaction as any)?.property?.location || "غير متوفر"}
                     </li>
                     <li>
                       <span className="text-slate-400">المساحة: </span>
-                      145 م²
+                      {(currentTransaction as any)?.property?.area || "غير متوفر"}
                     </li>
                     <li>
                       <span className="text-slate-400">القيمة: </span>
-                      850,000,000 ل.س
+                      {(currentTransaction as any)?.property?.price || "غير متوفر"}
                     </li>
                     <li className="sm:col-span-2">
                       <span className="text-slate-400">حالة الدفع: </span>
-                      <span className="font-medium text-emerald-700">
-                        محجوز في حساب الضمان
+                    <span className={`font-medium ${
+                        (currentTransaction as any).status === "COMPLETED" 
+                  ? "text-emerald-700" 
+                  : "text-amber-700"
+                    }`}>
+                  {(currentTransaction as any).status === "COMPLETED" 
+                ? "تم تحويل المبلغ للمالك" 
+                    : "محجوز في حساب الضمان"}
                       </span>
                     </li>
                   </ul>
@@ -177,24 +253,27 @@ export default function TransactionsPage() {
               <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-6 py-4">
                 
           <button 
-  disabled={transaction.status === "COMPLETED"} // تعطيل الزر إذا اكتملت المعاملة
+  disabled={(currentTransaction as any).status === "COMPLETED" || !isChecklistComplete} // تعطيل الزر إذا اكتملت المعاملة
   onClick={async () => {
-    const res = await approveTransaction(transaction.id, transaction.userId, transaction.propertyId);
+    const res = await approveTransaction(currentTransaction.id, currentTransaction.userId, currentTransaction.propertyId);
+    const newStats = await getStats();
+    setStats(newStats);
     if (res.success) {
       alert("تمت الموافقة ونقل الملكية بنجاح! 🎉");
       window.location.reload(); // تحديث الصفحة لرؤية الحالة الجديدة
     }
   }}
-  className={`p-3 rounded-lg ${transaction.status === "COMPLETED" ? "bg-gray-400" : "bg-[#2DD4BF] text-white"}`}
+  className={`p-3 rounded-lg ${(currentTransaction as any).status === "COMPLETED" || !isChecklistComplete ? "bg-gray-400" : "bg-[#2DD4BF] text-white"}`}
 >
-  {transaction.status === "COMPLETED" ? "تمت الموافقة" : "قبول المعاملة ونقل الملكية"}
+  {(currentTransaction as any).status === "COMPLETED" ? "تمت الموافقة" : "قبول المعاملة ونقل الملكية"}
 </button>
             
-               <button 
+              <button 
   onClick={async () => {
     if (confirm("هل أنت متأكد من رفض هذه المعاملة؟")) {
       const result = await rejectTransaction("cmoxzssu40000uzj8f2c2vqw0"); // مرر الـ ID الخاص بالمعاملة
-      
+      const newStats = await getStats();
+      setStats(newStats);
       if (result.success) {
         alert("تم رفض المعاملة بنجاح ❌");
         window.location.reload();
@@ -221,57 +300,56 @@ export default function TransactionsPage() {
               <h2 className="text-base font-bold text-slate-900">
                 سجل العمليات السابقة
               </h2>
-              <ul className="mt-4 space-y-4">
-                {[
-                  { id: "#TRX-9925", time: "منذ ساعتين", ok: true },
-                  { id: "#TRX-9921", time: "منذ 5 ساعات", ok: false },
-                  { id: "#TRX-9918", time: "أمس", ok: true },
-                  { id: "#TRX-9912", time: "أمس", ok: true },
-                ].map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
-                  >
-                    {row.ok ? (
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                    ) : (
-                      <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900">{row.id}</p>
-                      <p className="text-xs text-slate-500">{row.time}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            <ul className="mt-4 space-y-4">
+  {recentTransactions.map((row) => (
+    <li
+      key={row.id}
+      className="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0"
+    >
+      {row.status === "COMPLETED" ? (
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+      ) : (
+        <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+      )}
+      
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-slate-900">
+          TRX-{row.id.toString().slice(-4)}#
+        </p>
+        <p className="text-xs text-slate-500">
+          {new Date(row.createdAt).toLocaleDateString('ar-SA')}
+        </p>
+      </div>
+    </li>
+  ))}
+</ul>
             </section>
-
-            <section className="overflow-hidden rounded-2xl bg-[#051327] p-5 text-white shadow-md">
+<section className="overflow-hidden rounded-2xl bg-[#051327] p-5 text-white shadow-md">
               <h2 className="text-base font-bold">قائمة تدقيق البيانات</h2>
               <ul className="mt-4 space-y-3 text-sm">
-                {[
-                  "التحقق من سند الملكية",
-                  "مطابقة بصمة البائع",
-                  "التحقق من الهوية الشخصية للطرفين",
-                  "مراجعة عقد الضمان",
-                  "توقيع الطلبات أمام الكاتب العدل",
-                ].map((label, i) => (
-                  <li key={label} className="flex items-center gap-2">
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded border ${
-                        i < 3
-                          ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
-                          : "border-white/20 bg-white/5"
-                      }`}
-                    >
-                      {i < 3 ? (
-                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                      ) : null}
-                    </span>
-                    <span className={i < 3 ? "" : "text-white/70"}>{label}</span>
-                  </li>
-                ))}
-              </ul>
+  {checklistItems.map((item, i) => (
+    <li 
+      key={i} 
+      className="flex items-center gap-2 cursor-pointer"
+      onClick={async () => {
+        // استدعاء الدالة التي كتبتها أنت في ملف Actions
+        await updateChecklist(currentTransaction.id, item.field, !item.status);
+        const newStats = await getStats();
+        setStats(newStats);
+        setCurrentTransaction({
+        ...currentTransaction,
+        [item.field]: !item.status});
+      }}
+    >
+      <span className={`flex h-5 w-5 items-center justify-center rounded border ${
+        item.status ? "border-emerald-400 bg-emerald-500/20" : "border-white/20 bg-white/5"
+      }`}>
+        {item.status && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
+      <span className={item.status ? "" : "text-white/70"}>{item.label}</span>
+    </li>
+  ))}
+</ul>
               <p className="mt-4 border-t border-white/10 pt-4 text-xs leading-relaxed text-white/55">
                 ملاحظة النظام: يتم حفظ حالة التدقيق تلقائياً مع كل خطوة موافقة،
                 ولا يمكن إتمام النقل قبل إكمال البنود الإلزامية.
