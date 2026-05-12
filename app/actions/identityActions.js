@@ -37,3 +37,31 @@ export async function rejectIdentityAction(userId) {
         return { success: false };
     }
 }
+export async function getIdentityRequests() {
+  try {
+    const requests = await prisma.verificationRequest.findMany({
+      include: {
+        user: true, // عشان نجيب اسم الشخص اللي بعت الهوية
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return requests;
+  } catch (error) {
+    return [];
+  }
+}
+export async function updateRequestStatus(requestId, newStatus) {
+    try {
+        await prisma.verificationRequest.update({
+            where: { id: requestId },
+            data: { status: newStatus }
+        });
+        revalidatePath("/admin/identity"); 
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: error.message };
+    }
+}

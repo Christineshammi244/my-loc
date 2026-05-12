@@ -8,6 +8,7 @@ datasource db {
 }
 model User {
     id         String     @id @default(uuid())
+    phone      String?
     name       String
     email      String     @unique
     password   String
@@ -18,6 +19,7 @@ model User {
     comments   Comment[]
     wishlists  Wishlist[]
     transaction Transaction[]
+    verificationRequests VerificationRequest?
 }
 model Transaction {
   id              String   @id @default(cuid())
@@ -57,8 +59,29 @@ model Property {
     images      Image[]
     wishlists   Wishlist[]
     transaction Transaction[]
+    area      Float? @default(0)
+    bedrooms  Int @default(0)
+    bathrooms Int @default(0)
+    floor     String @default("الطابق")
+    city      String @default("المدينة المحلية")
+    region    String @default("المنطقة المحلية")
 }
-
+model VerificationRequest {
+  id          String   @id @default(cuid())
+  userId      String   @unique // كل مستخدم له طلب توثيق واحد
+  user        User     @relation(fields: [userId], references: [id])
+  
+  idType      String   // مثلاً: "هوية شخصية" أو "جواز سفر"
+  idNumber    String?  // اختياري: رقم الهوية
+  frontImage  String   // رابط صورة الوجه الأمامي
+  backImage   String   // رابط صورة الوجه الخلفي
+  
+  status      String   @default("PENDING") // الحالات: PENDING, APPROVED, REJECTED
+  adminNotes  String?  // ملاحظاتك ليش رفضتي الطلب مثلاً
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 model Comment {
     id         Int      @id @default(autoincrement())
     content    String

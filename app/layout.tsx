@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
 import "./globals.css";
-
+import { ClerkProvider } from "@clerk/nextjs";
 const tajawal = Tajawal({
   subsets: ["arabic"],
   weight: ["400", "500", "700"],
@@ -10,8 +10,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "????? ? ???? ???????",
-  description: "?????? ????? ?????? ?????? ??????",
+  title: "عقارك",
+  description: "منصة إدارة العقارات",
 };
 
 export default function RootLayout({
@@ -19,7 +19,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
+    <ClerkProvider>
     <html
       lang="ar"
       dir="rtl"
@@ -29,5 +31,6 @@ export default function RootLayout({
         {children}
       </body>
     </html>
+    </ClerkProvider>
   );
 }

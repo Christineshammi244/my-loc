@@ -1,6 +1,8 @@
+"use client";
 import Link from "next/link";
 import { Home, LogOut } from "lucide-react";
 import { adminNav, type NavKey } from "./nav-config";
+import {useUser} from  "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 
 type SidebarProps = {
@@ -10,7 +12,7 @@ type SidebarProps = {
 
 export function Sidebar({ active, variant = "default" }: SidebarProps) {
   const isIdentity = variant === "identity";
-
+const{user} =useUser();
   return (
     <aside
       className={cn(
@@ -61,11 +63,15 @@ export function Sidebar({ active, variant = "default" }: SidebarProps) {
       <div className="border-t border-slate-200 p-4">
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-amber-500 text-sm font-bold text-white">
-            أ
+            {user?.firstName?.charAt(0)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-900">أحمد محمد</p>
-            <p className="truncate text-xs text-slate-500">مشرف رئيسي</p>
+            <p className="truncate text-sm font-semibold text-slate-900">
+            {user?.firstName|| "جاري التحميل..."}
+          </p>
+          <p className="truncate text-xs text-slate-500">
+            {user?.publicMetadata?.role as string || "مشرف نظام"}
+          </p>
           </div>
           <button
             type="button"
