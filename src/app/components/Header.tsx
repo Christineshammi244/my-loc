@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Menu, Home as HomeIcon, Bell } from "lucide-react";
+import Link from "next/link";
 
 export default function Header(): React.JSX.Element {
   return (
@@ -18,18 +19,24 @@ export default function Header(): React.JSX.Element {
             <span className="absolute top-2 right-2 bg-red-500 w-2 h-2 rounded-full border-2 border-white"></span>
           </button>
         </div>
-        <div className="flex-2 flex justify-center items-center gap-2 ">
+        <Link
+          href="/"
+          className="flex-2 flex justify-center items-center gap-2 "
+        >
           <div className="bg-[#1286c8] p-1.5 rounded-xl ">
             <HomeIcon size={26} className=" text-white " />
           </div>
           <h1 className="text-4xl font-extrabold text-[#1286c8] tracking-tight">
             عقارك
           </h1>
-        </div>
+        </Link>
         <div className="flex-1 flex justify-end">
-          <button className="p-5 bg-[#00ADEE] text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl font-normal text-sm shadow-md hover:bg-[#0096ce] transition-all transform active:scale-95">
+          <Link
+            href="/login"
+            className="p-5 bg-[#00ADEE] text-white px-2 py-1.5 md:px-4 md:py-2 rounded-xl font-normal text-sm shadow-md hover:bg-[#0096ce] transition-all transform active:scale-95"
+          >
             دخول / حساب جديد
-          </button>
+          </Link>
         </div>
       </nav>
     </header>

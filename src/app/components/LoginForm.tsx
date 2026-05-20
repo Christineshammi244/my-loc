@@ -2,6 +2,7 @@
 import React from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,9 +34,9 @@ export const LoginForm: React.FC = () => {
             <label className="text-sm font-bold text-gray-700">
               كلمة المرور
             </label>
-            <button type="button" className="text-xs text-[#0984E3]">
+            <Link href="/forgot-password" className="text-xs text-[#0984E3]">
               نسيت كلمة المرور؟
-            </button>
+            </Link>
           </div>
           <div className="relative">
             <input

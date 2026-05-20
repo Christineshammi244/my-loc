@@ -1,6 +1,7 @@
 import React from "react";
 import { FaPersonSwimming } from "react-icons/fa6";
 import { FaSwimmer } from "react-icons/fa";
+import Link from "next/link";
 import {
   MapPin,
   BedDouble,
@@ -141,9 +142,12 @@ export default function PropertyCard({
         </div>
 
         {/* الزر الموسط بالأسفل */}
-        <button className="w-full mt-4 py-4 bg-gray-50 text-gray-400 rounded-2xl text-xs font-medium hover:bg-blue-50 hover:text-blue-500 transition-all border border-transparent hover:border-blue-100">
+        <Link
+          href="/login"
+          className="w-full mt-4 py-4 bg-gray-50 text-gray-400 rounded-2xl text-xs font-medium hover:bg-blue-50 hover:text-blue-500 transition-all border border-transparent hover:border-blue-100"
+        >
           سجل دخولك لعرض السعر وتفاصيل التواصل
-        </button>
+        </Link>
       </div>
     </div>
   );
