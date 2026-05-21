@@ -1,13 +1,13 @@
 "use server";
 
-import { db } from "@/lib/db";
+// تصحيح الاستيراد ليتجه لملف بريسما الحقيقي بمشروعك
+import  prisma  from "@/lib/prisma";
 
 export async function getProperties(params) {
     try {
-        // 1. فك "البارامترات" (لاحظي ضفت title هون)
-        const { city, category, roomCount, title } = params;
+        const { city, category, roomCount, title } = params || {};
 
-        // 2. بناء غرض البحث (Query Object)
+        // بناء غرض البحث المطابق تماماً للحقول الحقيقية بالسكيما
         let query = {};
 
         if (city) {
@@ -19,21 +19,24 @@ export async function getProperties(params) {
         }
 
         if (roomCount) {
-            query.roomCount = { 
-                gte: parseInt(roomCount) 
+            // تصحيح اسم الحقل ليكون rooms المتوافق مع Int في السكيما الحقيقية
+            query.rooms = { 
+                gte: parseInt(roomCount) || 0 
             };
         }
 
-        // 3. منطق البحث النصي (الكيبورد)
         if (title) {
             query.title = {
                 contains: title,
             };
         }
 
-        // 4. جلب البيانات من الداتابيز (Prisma)
-        const properties = await db.listing.findMany({
+        // تصحيح جلب البيانات ليقرأ من جدول property الحقيقي، مع عمل include للصور
+        const properties = await prisma.property.findMany({
             where: query,
+            include: {
+                images: true // ضروري لعرض صور العقارات بالصفحة الرئيسية بدون أخطاء
+            },
             orderBy: {
                 createdAt: 'desc'
             }
@@ -42,7 +45,7 @@ export async function getProperties(params) {
         return properties;
 
     } catch (error) {
-        console.log("Error in getProperties Action:", error);
+        console.error("Error in getProperties Action:", error);
         return [];
     }
 }

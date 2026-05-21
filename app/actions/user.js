@@ -81,6 +81,26 @@ export async function deletePropertyAction(id) {
         revalidatePath("/display-properties");
         return { success: true };
     } catch (error) {
+        console.log(error);
         return { success: false, error: "حدث خطأ أثناء الحذف" };
+    }
+}
+export async function getUserProfile() {
+    try {
+    const { userId } = await auth();
+
+    if (!userId) {
+        return null;
+    }
+
+    // جلب بيانات المستخدم الحقيقية المطابقة للسكيما
+    const dbUser = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    });
+
+    return dbUser;
+    } catch (error) {
+    console.error("GET_USER_PROFILE_ERROR:", error);
+    return null;
     }
 }

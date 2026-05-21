@@ -1,45 +1,18 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import  prisma  from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-export async function addComment(propertyId, text) {
-    try {
-    // 1. جلب الـ userId من Clerk
-    const { userId } = await auth();
-
-    if (!userId) {
-        return { error: "يجب تسجيل الدخول أولاً" };
-    }
-
-    // 2. إنشاء التعليق في الداتابيز
-    const newComment = await prisma.comment.create({
-        data: {
-        content: text, // تأكدي لو مسميتيه content أو text في السكيما
-        userId: userId,
-        propertyId: parseInt(propertyId), // تحويل الـ ID لـ Int إذا كان هاد نوعه عندك
-        },
-    });
-
-
-    // 3. تحديث الصفحة فوراً
-    revalidatePath(`/properties/${propertyId}`);
-
-    return { success: true, comment: newComment };
-    } catch (error) {
-    console.error("COMMENT_ERROR:", error);
-    return { error: "حدث خطأ أثناء إضافة التعليق" };
-    }
-}
+// 1. جلب تعليقات عقار محدد بناءً على الـ Int
 export async function getComments(propertyId) {
     try {
     const comments = await prisma.comment.findMany({
-        where: { 
-        propertyId: parseInt(propertyId) 
+        where: {
+        propertyId: parseInt(propertyId), 
         },
-        orderBy: { 
-        createdAt: "desc" 
+        orderBy: {
+        createdAt: "desc", 
         },
     });
     return comments;
@@ -48,40 +21,72 @@ export async function getComments(propertyId) {
     return [];
     }
 }
-export async function deleteComment(commentId) {
+
+// 2. إضافة تعليق جديد لعقار محدد
+export async function addComment(propertyId, text) {
     try {
-    // 1. التأكد من هوية المستخدم عبر Clerk
     const { userId } = await auth();
+    if (!userId) return { error: "يجب تسجيل الدخول أولاً" };
 
-    if (!userId) {
-        return { error: "يجب تسجيل الدخول أولاً" };
-    }
-
-    // 2. جلب التعليق للتأكد من المالك
-    const comment = await prisma.comment.findUnique({
-        where: { id: commentId },
+    const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
     });
 
-    if (!comment) {
-        return { error: "التعليق غير موجود" };
-    }
+    if (!dbUser) return { error: "المستخدم غير مزامن" };
 
-    // 3. 🔒 حماية: هل هذا المستخدم هو صاحب التعليق؟
-    if (comment.userId !== userId) {
-        return { error: "غير مسموح لك بحذف هذا التعليق" };
-    }
+    const newComment = await prisma.comment.create({
+        data: {
+        content: text,
+        userId: dbUser.id, 
+        username: dbUser.name || "مستخدم مجهول", 
+        propertyId: parseInt(propertyId), 
+        },
+    });
 
-    // 4. تنفيذ الحذف
+    revalidatePath(`/m/properties/${propertyId}`);
+    return { success: true, comment: newComment };
+    } catch (error) {
+    console.error("COMMENT_ERROR:", error);
+    return { error: "حدث خطأ أثناء إضافة التعليق" };
+    }
+}
+
+
+
+
+export async function getMyComments() {
+    try {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const comments = await prisma.comment.findMany({
+        where: { userId: userId },
+        orderBy: { createdAt: "desc" },
+    });
+    return comments;
+    } catch (error) {
+    console.error("GET_MY_COMMENTS_ERROR:", error);
+    return [];
+    }
+}
+
+// دالة حذف تعليق خاص بالمستخدم
+export async function deleteMyComment(commentId) {
+    try {
+    const { userId } = await auth();
+    if (!userId) return { error: "يجب تسجيل الدخول أولاً" };
+
     await prisma.comment.delete({
-        where: { id: commentId },
+        where: { 
+        id: parseInt(commentId),
+        userId: userId // أمان إضافي لحذف تعليقك أنتِ فقط
+        },
     });
 
-    // 5. تحديث الصفحة (Refresh)
-    revalidatePath(`/properties/${comment.propertyId}`);
-
-    return { success: true, message: "تم حذف التعليق بنجاح" };
+    revalidatePath("/m/my-comments");
+    return { success: true };
     } catch (error) {
     console.error("DELETE_COMMENT_ERROR:", error);
-    return { error: "فشل في حذف التعليق" };
+    return { error: "فشل في الحذف" };
     }
 }

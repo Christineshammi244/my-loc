@@ -40,6 +40,7 @@ export async function getMyPropertiesAction() {
         location: formData.get("location"),
         type: formData.get("type"),
         category: formData.get("category"),
+        rooms: parseInt(formData.get("rooms") || "1"),
         ownerId: userId, // ربط العقار بـ Clerk User ID
       },
     });
@@ -63,6 +64,7 @@ export async function deletePropertyAction(propertyId) {
     });
     return { success: true };
   } catch (error) {
+    console.error(error);
     return { success: false, error: "فشل الحذف" };
   }
 }
