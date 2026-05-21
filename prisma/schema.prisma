@@ -65,20 +65,25 @@ model Property {
     floor     String @default("الطابق")
     city      String @default("المدينة المحلية")
     region    String @default("المنطقة المحلية")
+    verificationRequests VerificationRequest[]
 }
 model VerificationRequest {
   id          String   @id @default(cuid())
   userId      String   @unique // كل مستخدم له طلب توثيق واحد
   user        User     @relation(fields: [userId], references: [id])
-  
+  rejectedReason String?
   idType      String   // مثلاً: "هوية شخصية" أو "جواز سفر"
   idNumber    String?  // اختياري: رقم الهوية
   frontImage  String   // رابط صورة الوجه الأمامي
   backImage   String   // رابط صورة الوجه الخلفي
-  
+  propertyId  Int?
+  property    Property? @relation(fields: [propertyId], references: [id])
   status      String   @default("PENDING") // الحالات: PENDING, APPROVED, REJECTED
   adminNotes  String?  // ملاحظاتك ليش رفضتي الطلب مثلاً
-  
+  propertyDoc String  @default("not_found") // رابط صك الملكية
+isPriceMatched Boolean @default(false)
+isSigned Boolean @default(false)
+isContractReviewed Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

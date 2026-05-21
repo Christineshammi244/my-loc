@@ -1,7 +1,7 @@
 "use server";
 import prisma  from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-
+import { auth } from "@clerk/nextjs/server";
 // 1. جلب الإحصائيات الحقيقية من قاعدة البيانات
 export async function getStats() {
   try {
@@ -88,5 +88,40 @@ export async function getRecentTransactions() {
   } catch (error) {
     console.error("خطأ في جلب المعاملات:", error);
     return [];
+  }
+}
+
+
+interface SubmitContractInput {
+  propertyId: number; // أو string حسب نوع المعرف لديكِ
+  fullName: string;
+  phone: string;
+  offerPrice: string;
+  notes?: string;
+  // يمكنك لاحقاً إضافة روابط الملفات المرفوعة هنا إذا لزم الأمر
+}
+
+export async function submitContractRequest(input: SubmitContractInput) {
+const {userId}=await auth( );
+if(!userId) return {success:false,error:"لم يتم تسجيل الدخول بشكل صحيح"};
+
+  try {
+    // نقوم بإنشاء سجل جديد في جدول المعاملات
+    const newTransaction = await prisma.transaction.create({
+      data: {
+      
+    reference: `REF-${Date.now()}` ,
+    amount:parseFloat(input.offerPrice)||0,
+        status: "PENDING", // حالة الطلب الافتراضية بانتظار المراجعة
+        propertyId: input.propertyId,
+        type:"purchases",
+        userId,
+      },
+    });
+
+    return { success: true, message: "تم إرسال طلبك بنجاح وجاري مراجعته!" };
+  } catch (error) {
+    console.error("Error submitting contract:", error);
+    return { success: false, message: "حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مجدداً." };
   }
 }
