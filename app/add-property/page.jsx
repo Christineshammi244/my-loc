@@ -21,6 +21,7 @@ export default function AddPropertyPage() {
         alert("عذراً، حدث خطأ: " + (result?.error || "خطأ غير معروف"));
       }
     } catch (err) {
+      console.log(err);
       alert("حدث خطأ تقني أثناء الإرسال");
     } finally {
       setLoading(false);
