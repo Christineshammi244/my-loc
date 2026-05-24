@@ -1,6 +1,6 @@
 "use server"
 
-import  prisma  from "@/lib/prisma"; // التعديل الأمثل لمنع كثرة الاتصالات بقاعدة البيانات
+import  prisma  from "@/lib/prisma"; 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
@@ -50,7 +50,7 @@ export async function searchProperties(filters) {
     try {
         const searchQuery = filters?.query || "";
         const typeQuery = filters?.type || "الكل";
-
+        const decodedTypeQuery = decodeURIComponent(typeQuery).trim();
         const properties = await prisma.property.findMany({
             where: {
                 AND: [
@@ -58,10 +58,12 @@ export async function searchProperties(filters) {
                         OR: [
                             { title: { contains: searchQuery } },
                             { location: { contains: searchQuery } },
-                            { description: { contains: searchQuery } }
+                            { description: { contains: searchQuery } },
+                            { city: { contains: searchQuery } }
                         ]
                     } : {},
-                    typeQuery !== "الكل" ? { type: typeQuery } : {}
+                    //typeQuery !== "الكل" ? { type: typeQuery } : {}
+                decodedTypeQuery !== "الكل" ? { type: decodedTypeQuery } : {}
                 ]
             },
             include: {

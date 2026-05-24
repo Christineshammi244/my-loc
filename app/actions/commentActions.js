@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 
 // 1. جلب تعليقات عقار محدد بناءً على الـ Int
 export async function getComments(propertyId) {
+    if (!propertyId || isNaN(parseInt(propertyId))) {
+    return [];
+    }
     try {
     const comments = await prisma.comment.findMany({
         where: {

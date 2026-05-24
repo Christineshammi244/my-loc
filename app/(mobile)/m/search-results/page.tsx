@@ -21,7 +21,7 @@ export default async function SearchResultsPage({ searchParams }: SearchProps) {
 const properties = result.success ? result.data : [];
 
   return (
-    <PhoneShell title="نتائج البحث - دمشق">
+    <PhoneShell title={currentQuery ?` نتائج البحث - ${currentQuery}` : "نتائج البحث"}>
       <div className="rounded-2xl bg-white p-2">
         {/* نموذج البحث (Form) لإرسال الكلمة الدلالية للرابط تلقائياً */}
         <form method="GET" className="relative">
