@@ -7,7 +7,7 @@ export default async function MyCommentsPage() {
   // جلب البيانات من الأكشن المجهز بالخلفية
   const myComments = await getMyComments();
 
-  const thumb = "https://unsplash.com";
+  const thumb = "https://cloudinary.com";
 
   return (
     <PhoneShell title="تعليقاتي">

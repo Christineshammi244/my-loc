@@ -7,7 +7,7 @@ export default async function FavoritesPage() {
   const properties = await getWishlist();
   
   // رابط صورة احتياطية في حال لم يرفع المستخدم صوراً للعقار
-  const defaultPic = "https://unsplash.com";
+  const defaultPic = "https://cloudinary.com";
 
   return (
     <PhoneShell title="عقاراتي المفضلة">
