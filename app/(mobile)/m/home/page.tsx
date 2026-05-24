@@ -2,19 +2,20 @@ import Image from "next/image";
 import Link from "next/link"; // استدعاء للتنقل الآمن بين الصفحات
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import { getProperties } from "@/app/actions/propertyActions"; // استدعاء دالة جلب العقارات للرئيسية
-
+import {currentUser} from "@clerk/nextjs/server";
 export default async function HomeMobilePage() {
   // 1. جلب العقارات الحقيقية من قاعدة البيانات (مع تمرير بارامترات فارغة كبداية لجلب الكل)
   const properties = await getProperties({});
-  
+  const user = await currentUser();
+  const userName=user?`${user.firstName}`.trim():"المستخدم"
   // رابط صورة احتياطية في حال لم يرفع المستخدم صوراً للعقار
-  const defaultPic = "https://unsplash.com";
+  const defaultPic = "https://res.cloudinary.com/dsiymqxcd/image/upload/v1779561145/photo_2026-05-23_20-40-55_g1zbpw.jpg";
 
   return (
     <PhoneShell title="الرئيسية">
       {/* 2. ترحيب المستخدم الثابت الخاص بكِ */}
-      <div className="className= rounded-2xl bg-[#1ea0df] p-4 text-white mb-4">
-        <p className="text-xl font-bold">أهلاً بك مجدداً، أحمد 👋</p>
+      <div className="rounded-2xl bg-[#1ea0df] p-4 text-white mb-4">
+        <p className="text-xl font-bold">أهلاً بك مجدداً {userName} 👋</p>
         <p className="text-sm text-white/90">مدير عقاري • عضو عام في النظام</p>
       </div>
 
@@ -23,7 +24,7 @@ export default async function HomeMobilePage() {
         <h3 className="mb-2 text-center text-lg font-bold">البحث المتقدم</h3>
         <div className="relative h-52 overflow-hidden rounded-xl">
           <Image src={defaultPic} alt="hero" fill className="object-cover" />
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-black/35" ></div>
           <Link 
             href="/m/search-results" 
             className="absolute bottom-3 left-3 right-3 rounded-xl bg-[#1ea0df] py-3 text-center text-white font-bold text-sm transition hover:bg-[#1ea0df]/90 flex items-center justify-center"

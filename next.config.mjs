@@ -8,11 +8,8 @@ const nextConfig = {
             hostname: 'res.cloudinary.com',
             pathname: '/**',
           },
-          { protocol: 'https', hostname: 'placeholde.co' },
-          {
-            protocol: 'https',
-            hostname: '://unsplash.com',
-          }
+          
+          
         ],
       },
 };
