@@ -62,12 +62,14 @@ export async function searchProperties(filters) {
                             { city: { contains: searchQuery } }
                         ]
                     } : {},
-                    //typeQuery !== "الكل" ? { type: typeQuery } : {}
-                decodedTypeQuery !== "الكل" ? { type: decodedTypeQuery } : {}
+                   // typeQuery !== "الكل" ? { type: typeQuery } : {},
+
+                decodedTypeQuery !== "الكل" ? { type:  decodedTypeQuery  } : {}
                 ]
             },
             include: {
-                images: true // جلب مصفوفة الصور المرتبطة بالعقار تلقائياً
+                images: true// جلب مصفوفة الصور المرتبطة بالعقار تلقائياً
+            
             },
             orderBy: { 
                 createdAt: "desc" 
@@ -137,6 +139,7 @@ export async function getPropertyById(propertyId) {
         },
         include: {
         images: true, // يجلب مصفوفة روابط Cloudinary المرتبطة بالعقار
+        owner: true
         },
     });
 

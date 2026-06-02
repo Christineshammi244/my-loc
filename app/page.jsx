@@ -1,4 +1,4 @@
-import { getProperties } from "@/app/actions/getProperties";
+import { getProperties } from "@/app/actions/propertyActions";
 
 export default async function DisplayPropertiesPage({ searchParams }) {
   // جلب البيانات بناءً على الفلاتر (الباك إند اللي عملتيه)

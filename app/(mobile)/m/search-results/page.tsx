@@ -4,8 +4,7 @@ import { PhoneShell } from "@/components/mobile/phone-shell";
 import { searchProperties } from "@/app/actions/propertyActions"; // استدعاء دالة البحث الخلفية
 
 // الـ pic الافتراضية في حال لم يرفع المستخدم صورة للعقار
-const defaultPic =
-  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=80";
+
 
 interface SearchProps {
   searchParams: Promise<{ q?: string; type?: string }>}
@@ -15,7 +14,6 @@ export default async function SearchResultsPage({ searchParams }: SearchProps) {
   const params = await searchParams;
   const currentQuery = params.q || "";
   const currentType = params.type || "الكل";
-
   // جلب العقارات الحقيقية المطابقة للفلاتر من الباك إيند
   const result = await searchProperties({ query: currentQuery, type: currentType });
 const properties = result.success ? result.data : [];
@@ -41,11 +39,9 @@ const properties = result.success ? result.data : [];
 
         {/* أزرار الفلترة حسب النوع (التبويبات) */}
         <div className="mt-2 flex flex-wrap gap-2 text-sm">
-          {["الكل", "شقق", "فلل", "تجاري"].map((tab) => {
-            const isActive = currentType === tab;
-            // بناء رابط التبويب ليقوم بالتحديث فور الضغط عليه
-            const queryUrl = `?type=${encodeURIComponent(tab)}${currentQuery ? `&q=${encodeURIComponent(currentQuery)}` : ""}`;
-
+          {["الكل", "تجاري", "فلل", "شقق"].map((tab) => {
+  const isActive = currentType === tab;
+  const queryUrl = `?type=${encodeURIComponent(tab)}${currentQuery ? `&q=${encodeURIComponent(currentQuery)}`: ""}`;
             return (
               <a
                 key={tab}
@@ -56,7 +52,7 @@ const properties = result.success ? result.data : [];
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {tab}
+                {tab === "شقة" ? "شقق" : tab === "فيلا" ? "فلل" : tab}
                 </a>
             );
           })}
@@ -66,10 +62,10 @@ const properties = result.success ? result.data : [];
       </div>
 
       {properties?.map((property) =>  (
-        <article key={property.id} className="rounded-2xl bg-white p-2 mb-3">
+        <article key={property.id} className="rounded-2xl bg-white p-3 max-w-4xl mx-auto w-full mt-4 shadow-sm">
           <div className="relative h-44 overflow-hidden rounded-xl">
             <Image 
-              src={property.images?.[0].url || defaultPic} 
+              src={(property.images && property.images[0]?.url) || "/placeholder.png"} 
               alt={property.title} 
               fill 
               className="object-cover" 

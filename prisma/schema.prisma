@@ -12,6 +12,7 @@ model User {
     email      String     @unique
     password   String
     image      String?
+    phone     String?
     role       String     @default("user")
     isVerified Boolean    @default(false)
     createdAt  DateTime   @default(now())
@@ -19,6 +20,7 @@ model User {
     comments   Comment[]
     wishlists  Wishlist[]
     transaction Transaction[]
+    notification Notification []
 }
 model Transaction {
     id              String   @id @default(cuid())
@@ -83,4 +85,13 @@ model Wishlist {
     property   Property @relation(fields: [propertyId], references: [id])
 
     @@unique([userId, propertyId])
+}
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

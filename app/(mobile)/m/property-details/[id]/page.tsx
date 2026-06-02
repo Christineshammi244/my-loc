@@ -14,8 +14,8 @@ export default async function PropertyDetailsPage({params}:{params:Promise<{id:s
   const mainImage = property?.images?.[0]?.url || img;
   return (
     <PhoneShell title="تفاصيل العقار">
-      <section className="rounded-2xl bg-white p-3">
-        <div className="relative h-48 overflow-hidden rounded-xl">
+      <section className="rounded-2xl bg-white p-3 max-w-4xl mx-auto w-full mt-4 shadow-sm">
+        <div className="relative w-full h-48 md:h-96 overflow-hidden rounded-xl">
           <Image src={mainImage} alt="property" fill className="object-cover" />
           
         </div>
@@ -28,7 +28,7 @@ export default async function PropertyDetailsPage({params}:{params:Promise<{id:s
         <div className="mt-3 h-36 rounded-xl bg-slate-100 p-3">الموقع على الخريطة</div>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button className="rounded-lg bg-[#d8b236] py-2 font-bold text-white">طلب شراء</button>
-          <button className="rounded-lg bg-[#24a2de] py-2 font-bold text-white">اتصال</button>
+          <button className="rounded-lg bg-[#24a2de] py-2 font-bold text-white">{property.owner?.phone || "لا يوجد رقم"}</button>
         </div>
       </section>
     </PhoneShell>

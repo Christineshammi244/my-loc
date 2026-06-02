@@ -24,7 +24,7 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
   ] as const;
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-[390px] bg-[#f3f4f6] text-slate-800 shadow-sm">
+    <div className="mx-auto min-h-screen w-full max-w-[390px] md:max-w-full  bg-[#f3f4f6] text-slate-800 shadow-sm">
       {isMenuOpen ? (
         <button
           type="button"
@@ -65,6 +65,7 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
         </nav>
       </aside>
 
+
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-[#f9f9fb] px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-slate-700">
@@ -76,16 +77,18 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
             >
               <Menu className="h-5 w-5" />
             </button>
-            <button
-              type="button"
+            
+            {/* ربط جرس الإشعارات العلوي بصفحتكِ */}
+            <Link
+              href="/m/notifications"
               className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
             >
               <Bell className="h-5 w-5" />
-            </button>
+            </Link>
           </div>
           <div className="flex items-center gap-2 text-[#1f84da]">
-            <span className="text-3xl leading-none">◼</span>
-            <span className="text-3xl leading-none">◻</span>
+            <span className="text-3xl leading-none">◼️</span>
+            <span className="text-3xl leading-none">◻️</span>
             <p className="text-3xl font-bold">عقارك</p>
           </div>
         </div>
@@ -96,7 +99,13 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
             aria-label="بحث"
           >
-            <Search className="h-6 w-6 text-slate-700" />
+              <Link
+  href="/m/search-results"
+  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
+  aria-label="بحث"
+>
+  <Search className="h-6 w-6 text-slate-700" />
+</Link>
           </button>
         </div>
       </header>

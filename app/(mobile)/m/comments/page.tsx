@@ -70,6 +70,7 @@ export default async function CommentsPage() {
         <button className="mx-auto block min-h-11 rounded-xl px-4 py-2 text-center font-bold text-[#2e84d6] transition hover:bg-[#2e84d6]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40">
           تحميل المزيد من التعليقات
         </button>
+  
       </div>
     </PhoneShell>
   );
