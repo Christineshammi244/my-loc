@@ -1,236 +1,242 @@
-"use client";
-
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-
-type RequestItem = {
-  id: string;
-  name: string;
-  location: string;
-  role: string;
-  roleVariant: "seller" | "neutral";
-  idType: string;
-  idVariant: "personal" | "passport";
-  time: string;
-};
-
-const requests: RequestItem[] = [
-  {
-    id: "1",
-    name: "محمد الأحمد",
-    location: "دمشق، المزة",
-    role: "بائع عقاري",
-    roleVariant: "seller",
-    idType: "هوية شخصية",
-    idVariant: "personal",
-    time: "منذ 10 دقائق",
-  },
-  {
-    id: "2",
-    name: "سارة القادري",
-    location: "حلب، الأعظمية",
-    role: "معلن",
-    roleVariant: "neutral",
-    idType: "جواز سفر",
-    idVariant: "passport",
-    time: "منذ ساعة",
-  },
-  {
-    id: "3",
-    name: "خالد منصور",
-    location: "اللاذقية",
-    role: "بائع عقاري",
-    roleVariant: "seller",
-    idType: "هوية شخصية",
-    idVariant: "personal",
-    time: "منذ 3 ساعات",
-  },
-];
-
-const tabs = [
-  { key: "new", label: "الطلبات الجديدة", count: 12 },
-  { key: "review", label: "قيد المراجعة", count: null },
-  { key: "rejected", label: "المرفوضة", count: null },
-  { key: "done", label: "المكتملة", count: null },
-] as const;
+"use client"
+import { useState, useEffect } from "react";
+import { getIdentityRequests, updateRequestStatus } from "../../actions/identityActions";
+import { CheckCircle, XCircle, Clock, User, Calendar, ShieldCheck, Search, Image as ImageIcon } from "lucide-react";
 
 export function IdentityView() {
-  const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("new");
-  const [selectedId, setSelectedId] = useState(requests[0]?.id ?? "");
+    const [allRequests, setAllRequests] = useState<any[]>([]); 
+    const [filteredRequests, setFilteredRequests] = useState<any[]>([]); 
+    const [selectedReq, setSelectedReq] = useState<any>(null);
+    const [activeTab, setActiveTab] = useState("PENDING"); 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [notes, setNotes] = useState("");
+    const [loading, setLoading] = useState(true);
 
-  const selected = requests.find((r) => r.id === selectedId) ?? requests[0];
+    useEffect(() => {
+        async function loadData() {
+            const data = await getIdentityRequests();
+            const safeData = data || [];
+            setAllRequests(safeData);
+            const pending = safeData.filter((r: any) => r.status === "PENDING");
+            setFilteredRequests(pending);
+            if (pending.length > 0) setSelectedReq(pending[0]);
+            setLoading(false);
+        }
+        loadData();
+    }, []);
 
-  return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">التحقق من الهوية</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          مراجعة طلبات التوثيق الجديدة لضمان موثوقية المعلنين.
-        </p>
-      </div>
+    useEffect(() => {
+        let filtered = allRequests.filter(req => req.status === activeTab);
+        if (searchTerm) {
+            filtered = filtered.filter(req => 
+                req.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                req.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        setFilteredRequests(filtered);
+        if (!filtered.find(r => r.id === selectedReq?.id)) {
+            setSelectedReq(filtered.length > 0 ? filtered[0] : null);
+        }
+    }, [activeTab, searchTerm, allRequests]);
 
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={cn(
-              "rounded-full px-4 py-2 text-sm font-semibold transition",
-              tab === t.key
-                ? "bg-slate-900 text-white shadow-sm"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50",
-            )}
-          >
-            {t.label}
-            {t.count != null ? (
-              <span className="mr-1 text-xs opacity-80">({t.count})</span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+    const handleAction = async (status: string) => {
+        if (!selectedReq) return;
+        try {
+            const res = await updateRequestStatus(selectedReq.id, status);
+            if (res.success) {
+                alert(`تم ${status === 'APPROVED' ? 'قبول' : 'رفض'} التوثيق بنجاح ✨`);
+                window.location.reload();
+            }
+        } catch (error) {
+            alert("حدث خطأ أثناء التحديث");
+        }
+    };
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-5">
-          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-900">
-                قائمة الطلبات الواردة
-              </h2>
+    // دالة لحساب عدد الطلبات لكل تاب
+    const getCount = (status: string) => allRequests.filter(r => r.status === status).length;
+
+    if (loading) return (
+        <div className="flex h-96 items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col h-full gap-6 p-2" dir="rtl">
+            
+            {/* 1. التابات مع العدادات وتحسين البحث */}
+            <div className="flex flex-wrap items-center justify-between bg-white p-3 rounded-[1.5rem] border border-slate-200 shadow-sm gap-4">
+                <div className="flex bg-slate-50 p-1 rounded-xl gap-1">
+                    {[
+                        { id: 'PENDING', label: 'قيد المراجعة', color: 'bg-yellow-500' },
+                        { id: 'APPROVED', label: 'المكتملة', color: 'bg-green-500' },
+                        { id: 'REJECTED', label: 'المرفوضة', color: 'bg-red-500' }
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-black transition-all ${
+                                activeTab === tab.id 
+                                ? 'bg-white text-blue-600 shadow-sm' 
+                                : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
+                            }`}
+                        >
+                            {tab.label}
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] text-white ${
+                                activeTab === tab.id ? tab.color : 'bg-slate-300'
+                            }`}>
+                                {getCount(tab.id)}
+                            </span>
+                            </button>
+                    ))}
+                </div>
+                <div className="relative flex-grow max-w-xs">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input 
+                        type="text" 
+                        placeholder="ابحث بالاسم أو البريد..." 
+                        className="w-full border border-slate-200 rounded-xl pr-10 pl-4 py-2.5 text-sm outline-none focus:border-blue-400 bg-slate-50 focus:bg-white transition-all"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </div>
-            <ul className="divide-y divide-slate-100 p-3">
-              {requests.map((r) => (
-                <li key={r.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(r.id)}
-                    className={cn(
-                      "w-full rounded-xl px-3 py-3 text-right transition",
-                      selectedId === r.id
-                        ? "bg-sky-50 ring-1 ring-sky-200"
-                        : "hover:bg-slate-50",
+
+            <div className="flex flex-1 gap-6 overflow-hidden min-h-[600px]">
+                
+                {/* القائمة اليمنى: طلبات المستخدمين */}
+                <div className="w-80 bg-white rounded-[2rem] border border-slate-200 overflow-y-auto shadow-sm divide-y divide-slate-50">
+                    {filteredRequests.length === 0 ? (
+                        <div className="p-10 text-center space-y-3">
+                            <ImageIcon className="mx-auto text-slate-200" size={40} />
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">لا توجد طلبات</p>
+                        </div>
+                    ) : (
+                        filteredRequests.map((req) => (
+                            <div 
+                                key={req.id} 
+                                onClick={() => setSelectedReq(req)}
+                                className={`p-5 cursor-pointer transition-all relative ${
+                                    selectedReq?.id === req.id 
+                                    ? 'bg-blue-50/50' 
+                                    : 'hover:bg-slate-50'
+                                }`}
+                            >
+                                {selectedReq?.id === req.id && <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-600 rounded-l-full"></div>}
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-black">
+                                        {req.user?.name?.charAt(0)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-black text-slate-900 text-sm truncate">{req.user?.name}</p>
+                                        <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-1 font-bold uppercase">
+                                            <Clock size={10} /> {new Date(req.createdAt).toLocaleDateString('ar-EG')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
                     )}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-slate-900">{r.name}</p>
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                          r.idVariant === "personal"
-                            ? "bg-sky-100 text-sky-800"
-                            : "bg-violet-100 text-violet-800",
-                        )}
-                      >
-                        {r.idType}
-                      </span>
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                          r.roleVariant === "seller"
-                            ? "bg-amber-100 text-amber-900"
-                            : "bg-slate-100 text-slate-700",
-                        )}
-                      >
-                        {r.role}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-slate-500">{r.location}</p>
-                    <p className="mt-1 text-xs text-slate-400">{r.time}</p>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section className="lg:col-span-7">
-          <div className="space-y-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-start gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xl font-bold text-slate-500">
-                م
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {selected?.name}
-                  </h3>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900">
-                    قيد المراجعة
-                  </span>
                 </div>
-                <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                  <p>
-                    <span className="text-slate-400">البريد: </span>
-                    m.alahmad@example.sy
-                  </p>
-                  <p>
-                    <span className="text-slate-400">تاريخ الانضمام: </span>
-                    12 أكتوبر 2023
-                  </p>
-                  <p>
-                    <span className="text-slate-400">الهاتف: </span>
-                    +963 944 123 456
-                  </p>
-                  <p>
-                    <span className="text-slate-400">الموقع: </span>
-                    دمشق، سوريا
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div>
-              <h4 className="text-base font-bold text-slate-900">
-                الوثائق المرفوعة للمراجعة
-              </h4>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                  <p className="border-b border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">
-                    الوجه الأمامي للهوية الشخصية
-                  </p>
-                  <div className="aspect-[1.6/1] bg-gradient-to-br from-slate-200 to-slate-300" />
-                </div>
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                  <p className="border-b border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">
-                    الوجه الخلفي للهوية الشخصية
-                  </p>
-                  <div className="aspect-[1.6/1] bg-gradient-to-br from-slate-300 to-slate-400" />
-                </div>
-              </div>
-            </div>
+                {/* القسم الأيسر: مراجعة الوثائق والبيانات */}
+                <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 p-8 overflow-y-auto shadow-sm custom-scrollbar">
+                    {selectedReq ? (
+                        <div className="space-y-10 animate-in slide-in-from-left-4 duration-500">
+                            
+                            {/* 2. بطاقة بيانات المستخدم (للمطابقة) */}
+                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 grid grid-cols-2 md:grid-cols-3 gap-6">
+                                <div className="flex items-center gap-3">
+                                    <User className="text-blue-500" size={20} />
+                                    <div>
+                                        <p className="text-[10px] text-slate-400 font-black uppercase">الاسم الكامل</p>
+                                        <p className="text-sm font-black text-slate-800">{selectedReq.user?.name}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <ShieldCheck className="text-indigo-500" size={20} />
+                                    <div>
+                                        <p className="text-[10px] text-slate-400 font-black uppercase">نوع الوثيقة</p>
+                                        <p className="text-sm font-black text-slate-800">{selectedReq.idType || 'بطاقة شخصية'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Calendar className="text-emerald-500" size={20} />
+                                    <div>
+                                        <p className="text-[10px] text-slate-400 font-black uppercase">تاريخ الطلب</p>
+                                        <p className="text-sm font-black text-slate-800">{new Date(selectedReq.createdAt).toLocaleDateString('ar-EG')}</p>
+                                    </div>
+                                </div>
+                            </div>
 
-            <div>
-              <label
-                htmlFor="notes"
-                className="text-sm font-semibold text-slate-800"
-              >
-                ملاحظات المشرف (تظهر للمستخدم في حال الرفض):
-              </label>
-              <textarea
-                id="notes"
-                rows={4}
-                placeholder="اكتب سبب الرفض أو ملاحظات إضافية هنا..."
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none ring-sky-500/30 transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white focus:ring-2"
-              />
-            </div>
+                            {/* 3. تنسيق صور الهوية الاحترافي */}
+                            <div>
+                                <h4 className="text-sm font-black text-slate-900 mb-6 border-r-4 border-blue-600 pr-3 italic">الوثائق الرسمية المرفوعة</h4>
+                                <div className="grid gap-6 md:grid-cols-2">
+                                    {[
+                                        { title: 'الوجه الأمامي للوثيقة', img: selectedReq.frontImage },
+                                        { title: 'الوجه الخلفي للوثيقة', img: selectedReq.backImage }
+                                    ].map((pic, idx) => (
+                                        <div key={idx} className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-50 hover:shadow-xl transition-all duration-500">
+                                            <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[9px] font-black text-slate-600 shadow-sm uppercase tracking-widest">
+                                                {pic.title}
+                                            </div>
+                                            <div className="aspect-[1.5/1] overflow-hidden">
+                                                {pic.img ? (
+                                                    <img src={pic.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={pic.title} />
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                                        <ImageIcon size={32} className="opacity-20 mb-2" />
+                                                        <span className="text-[10px] font-bold tracking-widest">الصورة غير متوفرة</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="rounded-xl bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-600"
-              >
-                اعتماد التوثيق
-              </button>
-              <button
-                type="button"
-                className="rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
-              >
-                رفض الطلب
-              </button>
+                            {/* 4. ملاحظات المشرف وأزرار القرار */}
+                            <div className="space-y-6 pt-6 border-t border-slate-100">
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">ملاحظات المراجعة (تظهر للمستخدم عند الرفض):</label>
+                                    <textarea
+                                    className="w-full border border-slate-200 rounded-[1.5rem] p-5 bg-slate-50 outline-none focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm font-medium leading-relaxed" 
+                                        rows={3}
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        placeholder="اكتب سبب الرفض بوضوح (مثلاً: الصورة غير واضحة، الاسم غير مطابق)..."
+                                    />
+                                </div>
+
+                                <div className="flex flex-wrap gap-4">
+                                    <button 
+                                        onClick={() => handleAction("APPROVED")} 
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 text-sm font-black text-white shadow-xl shadow-blue-100 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95"
+                                    >
+                                        <CheckCircle size={18} />
+                                        اعتماد وتوثيق الحساب
+                                    </button>
+                                    <button 
+                                        onClick={() => handleAction("REJECTED")} 
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-2xl border-2 border-red-100 bg-white px-8 py-4 text-sm font-black text-red-600 hover:bg-red-50 hover:border-red-200 transition-all active:scale-95"
+                                    >
+                                        <XCircle size={18} />
+                                        رفض الطلب
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-300 space-y-4">
+                            <div className="p-8 bg-slate-50 rounded-full border border-slate-100">
+                                <User size={64} className="opacity-10" />
+                            </div>
+                            <p className="text-sm font-black tracking-widest text-slate-400 italic">الرجاء اختيار طلب لمراجعته</p>
+                        </div>
+                    )}
+                </div>
             </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+        </div>
+    );
 }

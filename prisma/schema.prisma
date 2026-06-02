@@ -8,11 +8,11 @@ datasource db {
 }
 model User {
     id         String     @id @default(uuid())
+    phone      String?
     name       String
     email      String     @unique
     password   String
     image      String?
-    phone     String?
     role       String     @default("user")
     isVerified Boolean    @default(false)
     createdAt  DateTime   @default(now())
@@ -21,6 +21,7 @@ model User {
     wishlists  Wishlist[]
     transaction Transaction[]
     notification Notification []
+    verificationRequests VerificationRequest?
 }
 model Transaction {
     id              String   @id @default(cuid())
@@ -28,15 +29,21 @@ model Transaction {
   type            String   // "مشتري" أو "بائع" (حسب نوع الطلب اللي قدمه اليوزر)
     amount          Float
   status          String   @default("PENDING") // قيد الانتظار، موافق عليه، مرفوض
-  otherPartyName  String?  // مثل "لينا يوسف" الظاهرة في الصورة
+  otherPartyName  String?  
+  otherPartyAddress String?
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  propertyId      Int
+  property        Property @relation(fields: [propertyId], references: [id])
+  isIdentityVerified Boolean @default(false)
+  isTitleDeedValid Boolean @default(false)
+  isPriceMatched Boolean @default(false)
+  isSigned Boolean @default(false)
+  isContractReviewed Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   otherPartyPhone String?  // رقم الهاتف الظاهر
-  otherPartyAddress String? // العن
-    userId          String
-    user            User     @relation(fields: [userId], references: [id])
-    propertyId      Int
-    property        Property @relation(fields: [propertyId], references: [id])
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @updatedAt
+   
 }
 
 model Property {
@@ -46,7 +53,7 @@ model Property {
     price       Float
     rooms       Int       @default(0)     
     location    String
-    city        String
+    
     type        String
     category    String
     status      String     @default("available")
@@ -57,8 +64,34 @@ model Property {
     images      Image[]
     wishlists   Wishlist[]
     transaction Transaction[]
+    area      Float? @default(0)
+    bedrooms  Int @default(0)
+    bathrooms Int @default(0)
+    floor     String @default("الطابق")
+    city      String @default("المدينة المحلية")
+    region    String @default("المنطقة المحلية")
+    verificationRequests VerificationRequest[]
 }
-
+model VerificationRequest {
+  id          String   @id @default(cuid())
+  userId      String   @unique // كل مستخدم له طلب توثيق واحد
+  user        User     @relation(fields: [userId], references: [id])
+  rejectedReason String?
+  idType      String   // مثلاً: "هوية شخصية" أو "جواز سفر"
+  idNumber    String?  // اختياري: رقم الهوية
+  frontImage  String   // رابط صورة الوجه الأمامي
+  backImage   String   // رابط صورة الوجه الخلفي
+  propertyId  Int?
+  property    Property? @relation(fields: [propertyId], references: [id])
+  status      String   @default("PENDING") // الحالات: PENDING, APPROVED, REJECTED
+  adminNotes  String?  // ملاحظاتك ليش رفضتي الطلب مثلاً
+  propertyDoc String  @default("not_found") // رابط صك الملكية
+isPriceMatched Boolean @default(false)
+isSigned Boolean @default(false)
+isContractReviewed Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 model Comment {
     id         Int      @id @default(autoincrement())
     content    String

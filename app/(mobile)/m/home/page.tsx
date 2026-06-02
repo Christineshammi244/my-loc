@@ -6,8 +6,9 @@ import {currentUser} from "@clerk/nextjs/server";
 export default async function HomeMobilePage() {
   // 1. جلب العقارات الحقيقية من قاعدة البيانات (مع تمرير بارامترات فارغة كبداية لجلب الكل)
   const properties = await getProperties({});
-  const user = await currentUser();
+  const user = await currentUser()
   const userName=user?`${user.firstName}`.trim():"المستخدم";
+
   // رابط صورة احتياطية في حال لم يرفع المستخدم صوراً للعقار
   const defaultPic = "https://res.cloudinary.com/dsiymqxcd/image/upload/v1779561145/photo_2026-05-23_20-40-55_g1zbpw.jpg";
 
@@ -24,7 +25,10 @@ export default async function HomeMobilePage() {
         <h3 className="mb-2 text-center text-lg font-bold">البحث المتقدم</h3>
       
           <Image src={defaultPic} alt="hero" fill className="object-cover" />
+
           <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center p-6 text-center"></div>
+
+
           <Link 
             href="/m/search-results" 
             className="absolute bottom-3 left-3 right-3 rounded-xl bg-[#1ea0df] py-3 text-center text-white font-bold text-sm transition hover:bg-[#1ea0df]/90 flex items-center justify-center"

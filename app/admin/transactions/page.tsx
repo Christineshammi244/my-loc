@@ -1,283 +1,196 @@
 "use client";
+
 import Image from "next/image";
-import {approveTransaction} from "../../actions/transactionActions";
-import {rejectTransaction} from "../../actions/transactionActions";
-import {
-  BarChart3,
-  Check,
-  CheckCircle2,
-  ClipboardList,
-  Printer,
-  XCircle,
+import { useState, useEffect } from "react";
+import { 
+  BarChart3, Check, CheckCircle2, ClipboardList, 
+  Printer, XCircle, User, MapPin, Building2, Search 
 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { traceProcessWarnings } from "process";
+import { getRecentTransactions } from "../../actions/transactionActions";
+import { 
+  approveTransaction, rejectTransaction, updateChecklist, 
+  getStats, getTransactionById 
+} from "../../actions/transactionActions";
 
-const buildingImg =
-  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80";
+const buildingImg = "https://unsplash.com";
 
 export default function TransactionsPage() {
-  const transaction = {
-    id:"cmoxzssu40000uzj8f2c2vqw0",
-    userId:"e56d87ad-4b28-4d06-8b20-ebac623cfbc4",
-    propertyId: 1,
-  };
-  return (
-    <AdminShell
-      activeNav="transactions"
-      searchPlaceholder="بحث عن معاملة..."
-    >
-      <div className="mx-auto max-w-[1400px] space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            الموافقة على المعاملات
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            راجع بيانات البائع والمشتري والعقار قبل اعتماد نقل الملكية ضمن الضمان
-            القانوني.
-          </p>
-        </div>
+  const [currentTransaction, setCurrentTransaction] = useState<any>(null);
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [searchId, setSearchId] = useState("");
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "إجمالي العمليات",
-              value: "1,515",
-              icon: BarChart3,
-              iconBg: "bg-sky-100 text-sky-600",
-            },
-            {
-              label: "طلبات مرفوضة",
-              value: "89",
-              icon: XCircle,
-              iconBg: "bg-red-100 text-red-600",
-            },
-            {
-              label: "موافَق عليها",
-              value: "1,402",
-              icon: CheckCircle2,
-              iconBg: "bg-emerald-100 text-emerald-600",
-            },
-            {
-              label: "قيد الانتظار",
-              value: "24",
-              icon: ClipboardList,
-              iconBg: "bg-indigo-100 text-indigo-600",
-            },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"
-            >
-              <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl ${card.iconBg}`}
-              >
-                <card.icon className="h-6 w-6" strokeWidth={1.75} />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">{card.label}</p>
-                <p className="text-2xl font-bold tabular-nums text-slate-900">
-                  {card.value}
-                </p>
-              </div>
-            </div>
-          ))}
+  // المكونات الفرعية معرفة داخلياً لمنع أخطاء التداخل والعزل الهيكلي
+  function StatCard({ label, value, icon: Icon, color }: any) {
+    const styles: any = { blue: "bg-blue-50 text-blue-600", red: "bg-red-50 text-red-600", emerald: "bg-emerald-50 text-emerald-600", amber: "bg-amber-50 text-amber-600" };
+    return (
+      <div className="bg-white p-5 rounded-2xl border flex justify-between items-center shadow-sm">
+        <div className="text-right">
+          <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
+          <p className="text-2xl font-black text-slate-900 mt-1">{value ? value.toLocaleString() : 0}</p>
         </div>
+        <div className={`p-3.5 rounded-xl ${styles[color]}`}><Icon size={24}/></div>
+      </div>
+    );
+  }
+
+  function PartyInfo({ type, name }: any) {
+    const isSeller = type === 'seller';
+    return (
+      <div className={`p-4 rounded-2xl border-2 text-right ${isSeller ? 'bg-blue-50/50 border-blue-100' : 'bg-emerald-50/50 border-emerald-100'}`}>
+        <p className={`text-[10px] font-black uppercase ${isSeller ? 'text-blue-600' : 'text-emerald-600'}`}>
+          {isSeller ? 'البائع (المالك الحالي)' : 'المشتري (المالك الجديد)'}
+        </p>
+        <p className="text-sm font-bold mt-1 text-slate-900">{name || "غير محدد"}</p>
+        <p className="text-[11px] text-slate-400 mt-1 flex items-center justify-end gap-1"><MapPin size={10}/> dمشق، سوريا</p>
+      </div>
+    );
+  }
+
+  function Detail({ label, value }: any) {
+    return (
+      <div className="text-right border-r-2 border-slate-50 pr-4">
+        <span className="text-[10px] font-bold text-slate-400 uppercase">{label}</span>
+        <p className="text-sm font-bold text-slate-700">{value || "---"}</p>
+      </div>
+    );
+  }
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const s = await getStats();
+      setStats(s);
+
+      const recent = await getRecentTransactions();
+      setRecentTransactions(recent);
+      if (recent && recent.length > 0) {
+        setCurrentTransaction(recent[0]);
+      }
+    } catch (error) {
+      console.error("Error loading admin data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const toggleItem = async (field: string, currentVal: boolean) => {
+    if (!currentTransaction) return;
+    const newVal = !currentVal;
+    
+    setCurrentTransaction({ ...currentTransaction, [field]: newVal });
+
+    const res = await updateChecklist(currentTransaction.id, field, newVal);
+    if (!res || !res.success) {
+      setCurrentTransaction({ ...currentTransaction, [field]: currentVal });
+      alert("فشل التحديث، يرجى المحاولة لاحقاً");
+    }
+  };
+
+  if (loading) return <div className="p-10 text-center font-bold text-slate-500">جاري تحميل البيانات من السيرفر...</div>;
+  if (!currentTransaction) return <div className="p-10 text-center font-bold text-slate-500">لا توجد معاملات متاحة حالياً.</div>;
+
+  const checklist = [
+    { label: "التحقق من الهوية الشخصية", field: "isIdentityVerified", val: currentTransaction.isIdentityVerified },{ label: "التحقق من صك الملكية", field: "isTitleDeedValid", val: currentTransaction.isTitleDeedValid },
+    { label: "مطابقة السعر المتفق عليه", field: "isPriceMatched", val: currentTransaction.isPriceMatched },
+    { label: "توقيع الطلبات والوثائق", field: "isSigned", val: currentTransaction.isSigned },
+    { label: "مراجعة عقد الضمان", field: "isContractReviewed", val: currentTransaction.isContractReviewed },
+  ];
+
+  const canApprove = checklist.every(i => i.val === true  ||(i.val as any) === "true"||  (i.val as any) === 1);
+
+  return (
+    <AdminShell activeNav="transactions" searchValue={searchId} onSearchChange={(e: any) => setSearchId(e.target.value)} searchPlaceholder="ابحث عن العقارات">
+      <div className="mx-auto max-w-[1400px] space-y-6 pb-10 px-4" dir="rtl">
+        
+        <header>
+          <h1 className="text-2xl font-black text-slate-900">الموافقة على المعاملات</h1>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="إجمالي العمليات" value={stats.total} icon={BarChart3} color="blue" />
+            <StatCard label="طلبات مرفوضة" value={stats.rejected} icon={XCircle} color="red" />
+            <StatCard label="تمت الموافقة" value={stats.approved} icon={CheckCircle2} color="emerald" />
+            <StatCard label="طلبات معلقة" value={stats.pending} icon={ClipboardList} color="amber" />
+          </div>
+        </header>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
-            <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <main className="lg:col-span-2 space-y-6">
+            <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className="flex justify-between items-center px-6 py-5 border-b bg-slate-50/50 text-right">
                 <div>
-                  <p className="text-lg font-bold text-slate-900">
-                    معاملة #TRX-9928
-                  </p>
-                  <p className="text-sm text-slate-500">24 مايو 2024</p>
+                  <h2 className="text-lg font-bold text-slate-900">معاملة #TRX-{currentTransaction?.id?.toString()?.slice(0, 6) || "------"}</h2>
+                  <p className="text-xs text-slate-400">تاريخ الطلب: {new Date(currentTransaction.createdAt).toLocaleDateString('ar-SA')}</p>
                 </div>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                  بانتظار الموافقة النهائية
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${currentTransaction.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {currentTransaction.status === 'COMPLETED' ? 'مكتملة' : 'بانتظار التدقيق'}
                 </span>
               </div>
 
-              <div className="grid gap-4 p-6 md:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                  <p className="text-xs font-semibold text-slate-500">
-                    البائع (المالك الحالي)
-                  </p>
-                  <p className="mt-2 font-semibold text-slate-900">
-                    سامر الحسن
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    الهوية: 01234567890
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    العنوان: دمشق، المزة
-                  </p>
+              <div className="p-6 grid md:grid-cols-2 gap-4">
+                <PartyInfo type="seller" name={currentTransaction?.user?.name || "اسم المشتري"} />
+                <PartyInfo type="buyer" name={currentTransaction?.otherPartyName || "اسم البائع"} />
+              </div>
+
+              <div className="px-6 pb-6 flex flex-col md:flex-row gap-6 text-right">
+                <div className="relative w-full md:w-1/3 aspect-[4/3] rounded-2xl overflow-hidden border">
+                  <img src={buildingImg} alt="property" className="object-cover w-full h-full" />
                 </div>
-                <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                  <p className="text-xs font-semibold text-slate-500">
-                    المشتري (المالك الجديد)
-                  </p>
-                  <p className="mt-2 font-semibold text-slate-900">
-                    لينا يوسف
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    الهوية: 01987654321
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    العنوان: دمشق، أبو رمانة
-                  </p>
+                <div className="flex-1 grid grid-cols-2 gap-y-4">
+                  <Detail label="نوع العقار" value={currentTransaction?.property?.type || "---"} />
+                  <Detail label="المساحة" value={currentTransaction?.property?.area ? `${currentTransaction.property.area} ²م `: "--"} />
+                  <Detail label="الموقع" value={currentTransaction?.property?.location || "---"} />
+                  <div className="col-span-2">
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">قيمة الصفقة</span>
+                    <b className="text-2xl font-black text-blue-600">
+                      {Number(currentTransaction?.property?.price || 0).toLocaleString()} 
+                      <span className="text-sm font-normal text-slate-400 mr-1">ل.س</span>
+                    </b>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4 px-6 pb-6">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    تفاصيل العقار
-                  </p>
-                  <ul className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-                    <li>
-                      <span className="text-slate-400">النوع: </span>
-                      شقة سكنية
-                    </li>
-                    <li>
-                      <span className="text-slate-400">الموقع: </span>
-                      دمشق
-                    </li>
-                    <li>
-                      <span className="text-slate-400">المساحة: </span>
-                      145 م²
-                    </li>
-                    <li>
-                      <span className="text-slate-400">القيمة: </span>
-                      850,000,000 ل.س
-                    </li>
-                    <li className="sm:col-span-2">
-                      <span className="text-slate-400">حالة الدفع: </span>
-                      <span className="font-medium text-emerald-700">
-                        محجوز في حساب الضمان
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="relative aspect-[21/9] overflow-hidden rounded-xl bg-slate-100">
-                  <Image
-                    src={buildingImg}
-                    alt="صورة العقار"
-                    fill
-                    unoptimized
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 66vw"
-                    priority
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-6 py-4">
-                
-          <button 
-  disabled={transaction.status === "COMPLETED"} // تعطيل الزر إذا اكتملت المعاملة
-  onClick={async () => {
-    const res = await approveTransaction(transaction.id, transaction.userId, transaction.propertyId);
-    if (res.success) {
-      alert("تمت الموافقة ونقل الملكية بنجاح! 🎉");
-      window.location.reload(); // تحديث الصفحة لرؤية الحالة الجديدة
-    }
-  }}
-  className={`p-3 rounded-lg ${transaction.status === "COMPLETED" ? "bg-gray-400" : "bg-[#2DD4BF] text-white"}`}
->
-  {transaction.status === "COMPLETED" ? "تمت الموافقة" : "قبول المعاملة ونقل الملكية"}
-</button>
-            
-               <button 
-  onClick={async () => {
-    if (confirm("هل أنت متأكد من رفض هذه المعاملة؟")) {
-      const result = await rejectTransaction("cmoxzssu40000uzj8f2c2vqw0"); // مرر الـ ID الخاص بالمعاملة
-      
-      if (result.success) {
-        alert("تم رفض المعاملة بنجاح ❌");
-        window.location.reload();
-      }
-    }
-  }}
-  className="text-red-500 text-xs border-b border-red-500 ..." // الكلاسات الأصلية لزر الرفض عندك
->
-  رفض الطلب مع ذكر السبب
-</button>
-                <button
-                  type="button"
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
-                  aria-label="طباعة"
-                >
-                  <Printer className="h-5 w-5" strokeWidth={1.75} />
-                </button>
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-6">
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-              <h2 className="text-base font-bold text-slate-900">
-                سجل العمليات السابقة
-              </h2>
-              <ul className="mt-4 space-y-4">
-                {[
-                  { id: "#TRX-9925", time: "منذ ساعتين", ok: true },
-                  { id: "#TRX-9921", time: "منذ 5 ساعات", ok: false },
-                  { id: "#TRX-9918", time: "أمس", ok: true },
-                  { id: "#TRX-9912", time: "أمس", ok: true },
-                ].map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+              <div className="p-6 border-t bg-slate-50/50 flex justify-between items-center">
+                <div className="flex gap-3">
+                  <button 
+                  disabled={!canApprove || currentTransaction.status === 'COMPLETED'}
+                    onClick={() => approveTransaction(currentTransaction.id)}
+                    className={`px-10 py-3.5 rounded-xl font-black text-sm shadow-md transition-all ${(!canApprove || currentTransaction.status === 'COMPLETED') ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 cursor-pointer'}`}
                   >
-                    {row.ok ? (
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                    ) : (
-                      <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900">{row.id}</p>
-                      <p className="text-xs text-slate-500">{row.time}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
+                    {currentTransaction.status === 'COMPLETED' ? 'تم اعتماد النقل' : 'اعتماد ونقل الملكية'}
+                  </button>
 
-            <section className="overflow-hidden rounded-2xl bg-[#051327] p-5 text-white shadow-md">
-              <h2 className="text-base font-bold">قائمة تدقيق البيانات</h2>
-              <ul className="mt-4 space-y-3 text-sm">
-                {[
-                  "التحقق من سند الملكية",
-                  "مطابقة بصمة البائع",
-                  "التحقق من الهوية الشخصية للطرفين",
-                  "مراجعة عقد الضمان",
-                  "توقيع الطلبات أمام الكاتب العدل",
-                ].map((label, i) => (
-                  <li key={label} className="flex items-center gap-2">
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded border ${
-                        i < 3
-                          ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
-                          : "border-white/20 bg-white/5"
-                      }`}
-                    >
-                      {i < 3 ? (
-                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                      ) : null}
-                    </span>
-                    <span className={i < 3 ? "" : "text-white/70"}>{label}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 border-t border-white/10 pt-4 text-xs leading-relaxed text-white/55">
-                ملاحظة النظام: يتم حفظ حالة التدقيق تلقائياً مع كل خطوة موافقة،
-                ولا يمكن إتمام النقل قبل إكمال البنود الإلزامية.
-              </p>
+                  <button className="px-6 py-3.5 border-2 border-red-50 text-red-600 font-bold rounded-xl hover:bg-red-50 text-sm">رفض الطلب</button>
+                </div>
+                <button className="p-3 border rounded-xl bg-white shadow-sm text-slate-400 hover:bg-slate-50"><Printer size={22}/></button>
+              </div>
             </section>
-          </div>
+          </main>
+
+          <aside className="space-y-6">
+            <section className="bg-[#051327] p-6 rounded-2xl text-white shadow-2xl ring-1 ring-white/10">
+              <h3 className="font-bold mb-6 flex items-center gap-2 text-sm text-right justify-end">
+                <ClipboardList className="text-blue-400" size={18}/> قائمة تدقيق البيانات
+              </h3>
+              <div className="space-y-4 text-right">
+                {checklist.map((item, idx) => (
+                  <div key={idx} onClick={() => toggleItem(item.field, !!item.val)} className="flex items-center justify-end gap-3 cursor-pointer group">
+                    <span className={`text-[13px] ${item.val ? 'text-white font-medium' : 'text-white/40 group-hover:text-white/70'}`}>
+                      {item.label}
+                    </span>
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${item.val ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.4)]' : 'border-white/10 bg-white/5'}`}>
+                      {item.val && <Check size={12} strokeWidth={4} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </aside>
         </div>
       </div>
     </AdminShell>
