@@ -349,3 +349,20 @@ export async function submitContractRequest(data: {
     return { success: false, message: "حدث خطأ أثناء حفظ طلبك في قاعدة البيانات" };
   }
 }
+export async function getPendingProperties() {
+  try {
+    const properties = await prisma.property.findMany({
+      where: {
+        // إذا كان هناك حقل مخصص للحالة مثل استبيان التوثيق، نفلتر بناءً عليه
+        // يمكنكِ تعديل الحقل لاحقاً حسب قاعدة بياناتكم، حالياً سنجلب كل العقارات لمنع الخطأ
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return properties;
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    return [];
+  }
+}

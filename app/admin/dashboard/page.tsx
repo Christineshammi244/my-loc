@@ -2,7 +2,7 @@
 import { getDashboardStats } from "../..//actions/dashboardActions";
 import { getRecentTransactions } from "../../actions/transactionActions";
 import { getPendingProperties } from "../../actions/propertyActions";
-import { getPendingVerifications } from "../../actions/identityActions";
+import { getIdentityRequests } from "../../actions/identityActions";
 
 // جعل المكون يعمل كـ Server Component لجلب البيانات مباشرة من السيرفر وقاعدة البيانات
 export default async function AdminDashboardPage() {
@@ -17,7 +17,7 @@ export default async function AdminDashboardPage() {
   const pendingProperties = await getPendingProperties();
 
   // 4. جلب قائمة طلبات توثيق حسابات المستخدمين الجانبية (مثل عمار الياسمين)
-  const pendingVerifications = await getPendingVerifications();
+  const pendingVerifications = await getIdentityRequests();
   console.log("=== إحصائيات لوحة التحكم ===", totalProperties, totalTransactions, verificationRequests);
   console.log("=== المعاملات المالية ===", recentTransactions);
   console.log("=== العقارات المعلقة ===", pendingProperties);
