@@ -7,9 +7,14 @@ import Header from "@/components/mobile/Header";
 import Footer from "@/components/mobile/Footer";
 import PropertyCard from "@/components/mobile/PropertyCard";
 import { Menu, Home as HomeIcon, Bell } from "lucide-react";
+import React, { useState } from "react";
+import Sidebar from "@/components/mobile/SidebarVisit";
+
 // سنقوم بإنشاء هذا المكون الجديد الآن ليكون الكود منظماً
 import HeroSection from "@/components/mobile/HeroSection";
 export default function Home() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // بيانات تجريبية (Mock Data) مطابقة تماماً للصورة لتظهر في البطاقات
   const properties = [
     {
@@ -53,13 +58,15 @@ export default function Home() {
   return (
     // استخدام dir="rtl" لتنسيق اللغة العربية بشكل تلقائي وصحيح
     <div className="min-h-screen bg-white" dir="rtl">
-      <Header />
+      {/* استدعاء المكون وتمرير حالات التحكم له */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Header onMenuClick={() => setIsSidebarOpen(true)} />
 
       {/* 1. قسم الواجهة الأساسي (Hero Section) مع البحث */}
       <HeroSection />
 
       {/* 2. قسم عرض العقارات المميزة */}
-      <main className="max-w-1200px mx-auto px-4 py-12">
+      <main className="max-w-[1200px] mx-auto px-4 py-12">
         {/* عنوان القسم مع زر "عرض الكل" */}
         <div className="flex justify-between items-center mb-10">
           <h2 className="text-3xl font-bold text-gray-900">

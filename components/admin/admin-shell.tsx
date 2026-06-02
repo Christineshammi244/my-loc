@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { NavKey } from "./nav-config";
-import { Header } from "./header";
-import { Sidebar } from "./sidebar";
+import Header from "./header";
+import Sidebar from "./sidebar";
 
 type AdminShellProps = {
   children: ReactNode;

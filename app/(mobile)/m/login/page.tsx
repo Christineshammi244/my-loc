@@ -31,9 +31,12 @@ export default function LoginPage() {
 
           <p className="mt-8 text-center text-sm text-gray-500 font-medium">
             ليس لديك حساب؟{" "}
-            <span className="text-[#1f9be2] font-bold cursor-pointer hover:underline">
+            <Link
+              href="/m/create-account"
+              className="text-[#1f9be2] font-bold cursor-pointer hover:underline"
+            >
               أنشئ حساباً الآن
-            </span>
+            </Link>
           </p>
         </main>
 
