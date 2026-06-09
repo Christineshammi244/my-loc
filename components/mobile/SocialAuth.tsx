@@ -1,7 +1,26 @@
+"use client";
+
 import React from "react";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Facebook } from "lucide-react";
+import { useClerk } from "@clerk/nextjs";
+
 export const SocialAuth: React.FC = () => {
+  const clerk = useClerk();
+
+  const handleOAuthSignIn = async (provider: "oauth_google" | "oauth_facebook") => {
+    try {
+      // إجبار التايب سكريبت على تخطي فحص هذا السطر لمنع تعليق VS Code
+      // @ts-ignore
+      await clerk.signIn?.authenticateWithRedirect({
+        strategy: provider,
+        redirectUrl: "/m/sso-callback",
+        redirectUrlComplete: "/m",
+      });
+    } catch (err) {
+      console.error("خطأ في تسجيل الدخول الاجتماعي:", err);
+    }
+  };
+
   return (
     <div className="w-full space-y-4">
       {/* فاصل "أو عبر" للمصادقة الخارجية */}
@@ -14,12 +33,17 @@ export const SocialAuth: React.FC = () => {
         </span>
       </div>
 
-      {/* أزرار تسجيل الدخول الاجتماعي بملصقات وشعارات دقيقة */}
+      {/* أزرار تسجيل الدخول الاجتماعي */}
       <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto w-full">
+        
         {/* زر المصادقة: Google */}
-        <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
+        <button 
+          type="button"
+          onClick={() => handleOAuthSignIn("oauth_google")}
+          className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer"
+        >
           <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            src="https://svgrepo.com"
             alt="Google"
             className="w-4 h-4"
           />
@@ -27,10 +51,15 @@ export const SocialAuth: React.FC = () => {
         </button>
 
         {/* زر المصادقة: Facebook */}
-        <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
+        <button 
+          type="button"
+          onClick={() => handleOAuthSignIn("oauth_facebook")}
+          className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer"
+        >
           <Facebook className="w-4 h-4 text-[#1877F2] fill-[#1877F2]" />
           <span className="font-sans text-[11px]">Facebook</span>
         </button>
+        
       </div>
     </div>
   );

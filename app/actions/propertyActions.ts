@@ -52,36 +52,65 @@ export async function addProperty(formData: any) {
 // ==========================================
 export async function searchProperties(filters: any) {
   try {
-    const searchQuery = filters?.query || "";
-    const typeQuery = filters?.type || "الكل";
-    const decodedTypeQuery = decodeURIComponent(typeQuery).trim();
-    
+    const searchquery = filters?.query || "";
+    const typequery = filters?.type || "";
+    const decodedtypequery = decodeURIComponent(typequery).trim();
+
+    // 1️⃣ معالجة البحث النصي (الجمع والمفرد)
+    let categorySearch = searchquery;
+    const cleanQuery = searchquery.trim();
+
+    if (cleanQuery.includes("شقق") || cleanQuery.includes("شقه")) {
+      categorySearch = "شقة";
+    } else if (cleanQuery.includes("فلل") || cleanQuery.includes("فلا")) {
+      categorySearch = "فيلا";
+    } else if (cleanQuery.includes("بيوت") || cleanQuery.includes("منازل")||  cleanQuery.includes("منزل")) {
+      categorySearch = "بيت";
+    }
+
+    // 2️⃣ معالجة زر التصفية (التحويل من جمع إلى مفرد لتطابق قاعدة البيانات)
+    let btnCategoryFilter = decodedtypequery;
+    if (decodedtypequery === "شقق") {
+      btnCategoryFilter = "شقة";
+    } else if (decodedtypequery === "فلل") {
+      btnCategoryFilter = "فيلا";
+    }
+
     const properties = await prisma.property.findMany({
       where: {
         AND: [
-          searchQuery ? {
+          // الفلترة النصية المعتادة
+          searchquery ? {
             OR: [
-              { title: { contains: searchQuery } },
-              { location: { contains: searchQuery } },
-              { description: { contains: searchQuery } },
-              { city: { contains: searchQuery } }
+              { title: { contains: searchquery } },
+              { location: { contains: searchquery } },
+              { description: { contains: searchquery } },
+              { city: { contains: searchquery } },
+              { category: { contains: categorySearch } }
             ]
           } : {},
-          decodedTypeQuery !== "الكل" ? { type: decodedTypeQuery } : {}
+          
+          // 3️⃣ تعديل فلترة الأزرار لتبحث في الـ category بصيغة المفرد المتطابقة
+          decodedtypequery !== "الكل" && decodedtypequery !== "" ? {
+            OR: [
+              { category: btnCategoryFilter }, // يبحث عن "شقة" أو "فيلا"
+              { type: { contains: decodedtypequery } } // حماية في حال كان الزر يفلتر حقول أخرى مثل "تجاري"
+            ]
+          } : {}
         ]
       },
       include: {
-        images: true 
+        images: true
       },
-      orderBy: { 
-        createdAt: "desc" 
+      orderBy: {
+        createdAt: "desc"
       }
     });
 
     return { success: true, data: properties };
+
   } catch (error) {
-    console.error("SEARCH_PROPERTIES_ERROR:", error);
-    return { success: false, data: [] };
+    return { success: false, error: "حدث خطأ أثناء البحث" };
   }
 }
 

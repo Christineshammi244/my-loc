@@ -1,31 +1,32 @@
-import prisma from "@/lib/prisma"; // استيراد البريسما الصحيح الخاص بمشروعك
+import prisma from "@/lib/prisma"; 
 
 export async function getDashboardStats() {
   try {
-    // 1. إجمالي العقارات
+    // 1. إجمالي عدد العقارات
     const totalProperties = await prisma.property.count();
     
-    // 2. مجموع المعاملات المالية 
+    // 2. حساب إجمالي عدد المعاملات (مهم جداً للكرت والعدادات)
+    const totalTransactions = await prisma.transaction.count();
+
+    // 3. مجموع المعاملات المالية (إذا أردتِ عرضه كـ "حجم التداولات" في مكان آخر)
     const transactionsSum = await prisma.transaction.aggregate({
-      _sum: {
-        amount: true // تأكد أن اسم الحقل في جدول الـ transaction عندك هو amount
-      }
+      _sum: { amount: true }
     });
-    const totalTransactions = transactionsSum._sum.amount || 0;
+    const totalTransactionsAmount = transactionsSum._sum.amount || 0;
     
-    // 3. طلبات التوثيق المعلقة
+    // 4. طلبات التوثيق المعلقة
     const verificationRequests = await prisma.verificationRequest.count({ 
       where: { status: 'PENDING' } 
     });
 
-    // إرجاع البيانات بدون التذاكر
     return {
-      totalProperties,      // الرقم الإجمالي للعقارات
-      totalTransactions,    // مجموع المعاملات المادية
-      verificationRequests  // عدد طلبات التوثيق المعلقة
+      totalProperties,      
+      totalTransactions, // تم إرجاع العدد الحقيقي هنا ليتوافق مع كود الصفحة الرئيسي
+      totalTransactionsAmount, // خاصية إضافية بمجموع المبالغ لو احتجتيها مستقبلاً
+      verificationRequests  
     };
   } catch (error) {
     console.error("فشل جلب بيانات لوحة التحكم:", error);
-    return { totalProperties: 0, totalTransactions: 0, verificationRequests: 0 };
+    return { totalProperties: 0, totalTransactions: 0, verificationRequests: 0, totalTransactionsAmount: 0 };
   }
 }
