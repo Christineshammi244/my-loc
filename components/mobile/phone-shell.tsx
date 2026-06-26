@@ -1,16 +1,32 @@
-"use client";
-
+ "use client";
+import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Bell, Home, Instagram, Menu, Search, Twitter, X } from "lucide-react";
+import {
+  Bell,
+  Home,
+  Instagram,
+  Menu,
+  HomeIcon,
+  Search,
+  Twitter,
+  X,
+  User,
+} from "lucide-react";
 
 type PhoneShellProps = {
   title: string;
   children: ReactNode;
   withFooter?: boolean;
+  onMenuClick?: () => void;
 };
 
-export function PhoneShell({ title, children, withFooter = true }: PhoneShellProps) {
+export function PhoneShell({
+  onMenuClick,
+  title,
+  children,
+  withFooter = true,
+}: PhoneShellProps): React.JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuItems = [
     ["/m/home", "الرئيسية"],
@@ -24,7 +40,7 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
   ] as const;
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-[390px] md:max-w-full  bg-[#f3f4f6] text-slate-800 shadow-sm">
+    <div className="mx-auto min-h-screen w-full max-w-[390px] bg-[#f3f4f6] text-slate-800 shadow-sm">
       {isMenuOpen ? (
         <button
           type="button"
@@ -41,7 +57,7 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
         aria-hidden={!isMenuOpen}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <p className="text-lg font-extrabold text-[#1f84da]">القائمة</p>
+          <p  className="text-blue-600 font-extrabold text-xl">القائمة</p>
           <button
             type="button"
             onClick={() => setIsMenuOpen(false)}
@@ -65,78 +81,93 @@ export function PhoneShell({ title, children, withFooter = true }: PhoneShellPro
         </nav>
       </aside>
 
-
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-[#f9f9fb] px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-slate-700">
+        <nav
+          className="w-full flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-50"
+          dir="rtl"
+        >
+          <div className="flex-1 flex justify-start gap-2">
             <button
-              type="button"
               onClick={() => setIsMenuOpen(true)}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
-              aria-label="فتح القائمة"
+              type="button"
+              className=" text-[#1286c8] text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors shadow-sm"
             >
-              <Menu className="h-5 w-5" />
+              <Menu size={20} />
+              <span className="absolute top-5 right-4 bg-red-500 w-2 h-2 rounded-full border-2 border-white"></span>
             </button>
-            
-            {/* ربط جرس الإشعارات العلوي بصفحتكِ */}
-            <Link
-              href="/m/notifications"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
+                <Link
+              href="/m/home-registered"
+              className="flex-2 flex items-center  "
             >
-              <Bell className="h-5 w-5" />
+              <div className="bg-[#1286c8] p-1.5 rounded-xl ">
+                <HomeIcon size={26} className=" text-white " />
+              </div>
+              <h1 className="text-4xl font-extrabold text-[#1286c8] px-1 tracking-tight">
+                عقارك
+              </h1>
             </Link>
           </div>
-          <div className="flex items-center gap-2 text-[#1f84da]">
-            <span className="text-3xl leading-none">◼️</span>
-            <span className="text-3xl leading-none">◻️</span>
-            <p className="text-3xl font-bold">عقارك</p>
+          {/* التنبيهات والصورة الشخصية */}
+          <div className="flex items-center gap-4">
+            <Link
+              href="/m/notifications"
+              className="text-gray-600 hover:text-gray-900 relative"
+            >
+              <Bell size={22} />
+            </Link>
+            {/* الصورة الشخصية كما بالخلفية */}
+            <Link href="/m/profile">
+              <div className="w-9 h-9 rounded-full bg-[#fcefdc] border-2 border-[#f3d09e] flex items-center justify-center overflow-hidden cursor-pointer">
+                <User size={18} className="text-sm" />
+              </div>
+            </Link>
           </div>
-        </div>
-        <div className="mt-2 flex items-center justify-between">
-          <h1 className="text-[34px] font-extrabold tracking-tight text-slate-900">{title}</h1>
-          <button
-            type="button"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
-            aria-label="بحث"
-          >
-              <Link
-  href="/m/search-results"
-  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2e84d6]/40"
-  aria-label="بحث"
->
-  <Search className="h-6 w-6 text-slate-700" />
-</Link>
-          </button>
-        </div>
+        </nav>
       </header>
 
       <main className="space-y-4 px-3 py-4">{children}</main>
 
       {withFooter ? (
-        <footer className="mt-8 border-t border-slate-200 bg-[#f9f9fb] px-4 py-6 text-center">
-          <div className="mb-4 flex items-center justify-center gap-2 text-[#1f84da]">
-            <Home className="h-5 w-5 rounded-md bg-[#1f84da] p-1 text-white" />
-            <p className="text-3xl font-bold">عقارك</p>
+        <footer className="bg-white text-gray-600 py-8 px-6 border-t border-gray-100 font-sans">
+          <div
+            className="max-w-6xl mx-auto flex flex-col items-center gap-6 text-center "
+            dir="rtl"
+          >
+            <div className="flex items-center gap-2 text-2xl font-bold text-[#1286c8] ">
+              <Home
+                className="bg-[#1286c8] p-1.5 rounded-lg flex items-center justify-center text-white"
+                size={28}
+              />
+              <span>عقارك</span>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-8 text-sm font-medium">
+              <span className="hover:text-black cursor-pointer">عن المنصة</span>
+              <span className="hover:text-black cursor-pointer">
+                الشروط والأحكام
+              </span>
+              <span className="hover:text-black cursor-pointer">
+                سياسة الخصوصية
+              </span>
+              <span className="hover:text-black cursor-pointer">اتصل بنا</span>
+            </div>
+
+            <div className="flex gap-5">
+              <div className="p-2 bg-gray-100 rounded-full hover:bg-gray-100 cursor-pointer transition-colors text-black">
+                <FaFacebook size={20} />
+              </div>
+              <div className="p-2 bg-gray-100 rounded-full hover:bg-gray-100 cursor-pointer transition-colors text-black">
+                <FaTwitter size={20} />
+              </div>
+              <div className="p-2 bg-gray-100 rounded-full hover:bg-gray-100 cursor-pointer transition-colors text-black">
+                <FaInstagram size={20} />
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              © 2026 عقارك سوريا. جميع الحقوق محفوظة.
+            </p>
           </div>
-          <div className="mb-4 flex justify-center gap-6 text-sm text-slate-600">
-            <Link href="#" className="hover:text-slate-900">
-              عن المنصة
-            </Link>
-            <Link href="#" className="hover:text-slate-900">
-              الشروط والأحكام
-            </Link>
-            <Link href="#" className="hover:text-slate-900">
-              سياسة الخصوصية
-            </Link>
-          </div>
-          <div className="mb-3 flex justify-center gap-5 text-slate-800">
-            <Instagram className="h-5 w-5" />
-            <Twitter className="h-5 w-5" />
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-700 text-xs">
-              f
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">© 2026 عقارك سوريا، جميع الحقوق محفوظة</p>
         </footer>
       ) : null}
     </div>

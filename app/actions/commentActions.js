@@ -45,7 +45,7 @@ export async function addComment(propertyId, text) {
         propertyId: parseInt(propertyId), 
         },
     });
-
+    revalidatePath(`/m/property-details/${propertyId}`); 
     revalidatePath(`/m/properties/${propertyId}`);
     return { success: true, comment: newComment };
     } catch (error) {
