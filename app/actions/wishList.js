@@ -26,13 +26,18 @@ export async function toggleWishlistAction(propertyId) {
 
         if (existing) {
             await prisma.wishlist.delete({ where: { id: existing.id } });
-            revalidatePath("/m/wishlist");
+          //  revalidatePath(`/property-details/${numericPropertyId}`);
+          //  revalidatePath("/m/favorites");
+            revalidatePath("/","layout");
             return { success: true, added: false, message: "تمت الإزالة من المفضلة" };
         } else {
             await prisma.wishlist.create({
                 data: { userId: userId, propertyId: numericPropertyId }
             });
-            revalidatePath("/m/wishlist");
+            
+            revalidatePath("/","layout");
+          //  revalidatePath("/m/favorites");
+            //revalidatePath(`/property-details/${numericPropertyId}`);
             return { success: true, added: true, message: "تمت الإضافة إلى المفضلة" };
         }
     } catch (error) {

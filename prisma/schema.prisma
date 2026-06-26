@@ -17,9 +17,11 @@ model User {
     isVerified Boolean    @default(false)
     createdAt  DateTime   @default(now())
     properties Property[]
+    
     comments   Comment[]
     wishlists  Wishlist[]
     transaction Transaction[]
+    notification Notification []
     verificationRequests VerificationRequest?
 }
 model Transaction {
@@ -117,4 +119,13 @@ model Wishlist {
     property   Property @relation(fields: [propertyId], references: [id])
 
     @@unique([userId, propertyId])
+}
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

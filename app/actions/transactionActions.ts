@@ -8,7 +8,7 @@ export async function getStats() {
     const [total, pending, approved, rejected] = await Promise.all([
       prisma.transaction.count(),
       prisma.transaction.count({ where: { status: "PENDING" } }),
-      prisma.transaction.count({ where: { status: "COMPLETED" } }),
+      prisma.transaction.count({ where: { status: "available" } }),
       prisma.transaction.count({ where: { status: "REJECTED" } }),
     ]);
     return { total, pending, approved, rejected };
