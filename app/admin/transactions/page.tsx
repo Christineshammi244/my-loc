@@ -22,7 +22,6 @@ export default function TransactionsPage() {
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // المكونات الفرعية معرفة داخلياً لمنع أخطاء التداخل والعزل الهيكلي
   function StatCard({ label, value, icon: Icon, color }: any) {
     const styles: any = { blue: "bg-blue-50 text-blue-600", red: "bg-red-50 text-red-600", emerald: "bg-emerald-50 text-emerald-600", amber: "bg-amber-50 text-amber-600" };
     return (
@@ -159,13 +158,28 @@ export default function TransactionsPage() {
                 <div className="flex gap-3">
                   <button 
                   disabled={!canApprove || currentTransaction.status === 'COMPLETED'}
-                    onClick={() => approveTransaction(currentTransaction.id)}
+                onClick={async () => {
+  const res = await approveTransaction(currentTransaction.id);
+  if (res?.success) {
+    alert("تم اعتماد المعاملة وتفعيل العقار بنجاح!");
+  } else {
+    alert(res?.error || "حدث خطأ أثناء الاعتماد");
+  }
+}}
                     className={`px-10 py-3.5 rounded-xl font-black text-sm shadow-md transition-all ${(!canApprove || currentTransaction.status === 'COMPLETED') ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 cursor-pointer'}`}
                   >
                     {currentTransaction.status === 'COMPLETED' ? 'تم اعتماد النقل' : 'اعتماد ونقل الملكية'}
                   </button>
 
-                  <button className="px-6 py-3.5 border-2 border-red-50 text-red-600 font-bold rounded-xl hover:bg-red-50 text-sm">رفض الطلب</button>
+                  <button onClick={async () => {
+  const res = await rejectTransaction(currentTransaction.id);
+  if (res?.success) {
+    alert("تم رفض المعاملة بنجاح");
+  } else {
+    alert("حدث خطأ أثناء رفض المعاملة");
+  }
+}}
+                  className="px-6 py-3.5 border-2 border-red-50 text-red-600 font-bold rounded-xl hover:bg-red-50 text-sm">رفض الطلب</button>
                 </div>
                 <button className="p-3 border rounded-xl bg-white shadow-sm text-slate-400 hover:bg-slate-50"><Printer size={22}/></button>
               </div>

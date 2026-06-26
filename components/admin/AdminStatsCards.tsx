@@ -44,7 +44,6 @@ export default function AdminStatsCards() {
 
   return (
     <div className="w-full text-right mt-4" dir="rtl">
-      {/* شبكة البطاقات المنفصلة */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((card, index) => {
           const Icon = card.icon;
@@ -53,7 +52,6 @@ export default function AdminStatsCards() {
               key={index}
               className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between min-h-[130px]"
             >
-              {/* القسم العلوي: النسبة على اليمين والأيقونة على اليسار */}
               <div className="flex items-center justify-between">
                 <div
                   className={`p-2.5 rounded-xl ${card.iconBg} ${card.iconColor}`}
@@ -65,7 +63,6 @@ export default function AdminStatsCards() {
                 </span>
               </div>
 
-              {/* القسم السفلي: العنوان والرقّم */}
               <div className="text-right mt-4">
                 <p className="text-[11px] font-medium text-gray-400">
                   {card.title}

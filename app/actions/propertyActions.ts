@@ -4,50 +4,88 @@ import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-// ==========================================
-// 1. دالة إضافة عقار جديد
-// ==========================================
-export async function addProperty(formData: any) {
+
+import fs from "fs/promises";
+import path from "path";
+
+export async function createPropertyComplete(formData: FormData) {
   try {
-    const { userId } = await auth();
-    if (!userId) return { success: false, error: "يجب تسجيل الدخول أولاً" };
+    // 1. استخراج البيانات النصية
+    const category = formData.get("category") as string;     // شقة / فيلا
+    const governorate = formData.get("governorate") as string;
+    const city = formData.get("city") as string;
+    const region = formData.get("region") as string;
+    const area = formData.get("area") as string;
+    const price = Number(formData.get("price"));
+    const rooms = formData.get("rooms") as string;
+    const bathrooms = formData.get("bathrooms") as string;
+    const floor = formData.get("floor") as string;
+    const description = formData.get("description") as string;
+    
+    // 💡 حقل الـ type مطلوب في قاعدتك، سنعطيه قيمة افتراضية "للبيع" لتجنب الخطأ
+    const type = (formData.get("type") as string) ||"للبيع";
 
-    // جلب المستخدم الداخلي للحصول على المعرف المربوط بالسكيما
-    const dbUser = await prisma.user.findFirst({
-      where: { clerkId: userId } as any
-    });
-    if (!dbUser) return { success: false, error: "المستخدم غير مزامن" };
+    // 📸 معالجة وحفظ الصور محلياً
+    const imageFiles = formData.getAll("images") as File[];
+    const imageUrls: string[] = [];
 
-    const title = formData.get("title");
-    const description = formData.get("description");
-    const price = parseFloat(formData.get("price")) || 0;
-    const location = formData.get("location");
-    const city = formData.get("city");
-    const type = formData.get("type");
-    const category = formData.get("category");
+    for (const file of imageFiles) {
+      if (file.size > 0) {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const filename = `${uniqueSuffix}-${file.name}`;
+        const targetPath = path.join(process.cwd(), "public", "uploads", filename);
+        
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        await fs.writeFile(targetPath, buffer);
 
+        imageUrls.push(`/uploads/${filename}`);
+      }
+    }
+
+    if (!category || !city || !price) {
+      return { success: false, error: "الرجاء التأكد من ملء الحقول الأساسية كالسعر والتصنيف" };
+    }
+
+    // 📝 دمج تفاصيل المساحة والغرف في الوصف لحمايتها إذا لم تكن موجودة في الـ Schema كأعمدة منفصلة
+    const fullDescription = `
+      المساحة: ${area} م² | الغرف: ${rooms} | الحمامات: ${bathrooms} | الطابق: ${floor}
+      ---------------------------------
+    ${description  ||"بدون وصف إضافي"}
+    `.trim();
+
+    // 2. الحفظ في قاعدة البيانات (اقتصرنا على الحقول الأساسية المضمونة في موديل العقار لديك)
     const newProperty = await prisma.property.create({
       data: {
-        title,
-        description,
-        price,
-        location,
-        city,
-        type,
-        category,
-        ownerId: dbUser.id, 
+        category,                         // شقة أو فيلا بالعربي
+        type,                             // للبيع أو للإيجار (مطلوب في قاعدتك)
+        city,                             // المدينة
+        location: `${governorate} - ${city} - ${region}`, // الموقع الكامل
+        price,                            // السعر (رقم)
+        description: fullDescription,     // الوصف المدمج الذكي
+        
+        status: "PENDING",                // الحالة الافتراضية للعقار
+        title: `${category} في ${region || city}`, // عنوان تلقائي مجهز
+        owner:{
+          connect:{email :"harbangel383@gmail.com"}
+        },
+        // ربط الصور بجدول الصور الفرعي
+        images: {
+          create: imageUrls.map((url) => ({
+            url: url,
+          })),
+        },
       },
     });
 
-    revalidatePath("/m/search-results");
-    return { success: true, property: newProperty };
+    revalidatePath("/");
+    return { success: true, data: newProperty };
+
   } catch (error) {
-    console.error("ADD_PROPERTY_ERROR:", error);
-    return { success: false, error: "حدث خطأ أثناء إضافة العقار" };
+    console.error("خطأ أثناء الحفظ المحلي للمشروع:", error);
+    return { success: false, error: "حدث خطأ غير متوقع أثناء حفظ العقار" };
   }
 }
-
-// ==========================================
 // 2. دالة البحث والفلترة العامة
 // ==========================================
 export async function searchProperties(filters: any) {

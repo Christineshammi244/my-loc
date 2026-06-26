@@ -22,7 +22,6 @@ export default function Sidebar({ active, variant = "default" }: SidebarProps) {
         "bg-white",
       )}
     >
-      {/* الشعار والترويسة */}
       <div className="flex items-center gap-3 px-5 py-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0b6ddf]">
           <Home className="h-5 w-5 text-white" strokeWidth={1.75} />
@@ -37,7 +36,6 @@ export default function Sidebar({ active, variant = "default" }: SidebarProps) {
         </div>
       </div>
 
-      {/* قائمة التنقل الجانبية */}
       <nav className="flex flex-1 flex-col gap-1 px-3 pb-4">
         {adminNav.map((item) => {
           const Icon = item.icon;
@@ -66,16 +64,13 @@ export default function Sidebar({ active, variant = "default" }: SidebarProps) {
         })}
       </nav>
 
-      {/* معلومات المستخدم بالأسفل وزر تسجيل الخروج */}
       <div className="border-t border-slate-200 p-4">
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
           
-          {/* الحرف الأول من اسم المستخدم كصورة تعبيرية مؤقتة */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-amber-500 text-sm font-bold text-white">
             {user?.firstName?.charAt(0) || "أ"}
           </div>
 
-          {/* عرض بيانات المستخدم المسجل ديناميكياً */}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900">
               {user?.firstName || "أحمد محمد"}
@@ -85,7 +80,6 @@ export default function Sidebar({ active, variant = "default" }: SidebarProps) {
             </p>
           </div>
 
-          {/* زر تسجيل الخروج */}
           <button
             type="button"
             className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"

@@ -4,7 +4,6 @@ import { UserCheck, MessageSquare, CornerUpLeft, Trash2 } from "lucide-react";
 export default function DashboardSidebarTabs() {
   return (
     <div className="space-y-4 text-right" dir="rtl">
-      {/* 1. طلبات توثيق الحساب */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-50 pb-2 mb-3">
           <div className="flex items-center gap-1.5 text-slate-700 font-black text-xs">
@@ -39,7 +38,6 @@ export default function DashboardSidebarTabs() {
         </div>
       </div>
 
-      {/* 2. تذاكر الدعم الفني */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-50 pb-2 mb-3">
           <div className="flex items-center gap-1.5 text-slate-700 font-black text-xs">
@@ -51,7 +49,6 @@ export default function DashboardSidebarTabs() {
           </button>
         </div>
         <div className="space-y-4 text-[11px]">
-          {/* التذكرة الأولى */}
           <div className="border-b border-gray-50 pb-3 last:border-none last:pb-0">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[9px] font-bold text-rose-500 bg-rose-50 px-1 rounded">
@@ -59,7 +56,6 @@ export default function DashboardSidebarTabs() {
               </span>
               <span className="text-[9px] text-gray-400">منذ 15 د</span>
             </div>
-            {/* التعديل هنا: توزيع مرن يدفع الزر لليسار والنصوص لليمين */}
             <div className="flex items-end justify-between gap-4">
               <div className="text-right">
                 <p className="font-bold text-gray-800">مشكلة في تسجيل الدخول</p>
@@ -72,7 +68,6 @@ export default function DashboardSidebarTabs() {
               </button>
             </div>
           </div>
-          {/* التذكرة الثانية */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[9px] font-bold text-sky-500 bg-sky-50 px-1 rounded">
@@ -80,7 +75,6 @@ export default function DashboardSidebarTabs() {
               </span>
               <span className="text-[9px] text-gray-400">منذ ساعة</span>
             </div>
-            {/* التعديل هنا أيضاً */}
             <div className="flex items-end justify-between gap-4">
               <div className="text-right">
                 <p className="font-bold text-gray-800">
@@ -98,7 +92,6 @@ export default function DashboardSidebarTabs() {
         </div>
       </div>
 
-      {/* 3. أحدث التعليقات */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-50 pb-2 mb-3">
           <div className="flex items-center gap-1.5 text-slate-700 font-black text-xs">

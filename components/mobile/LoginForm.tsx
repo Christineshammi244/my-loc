@@ -3,21 +3,19 @@
 import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useSignIn } from "@clerk/nextjs"; // استيراد الباك إيند الخاص بـ Clerk
+import { useSignIn } from "@clerk/nextjs"; 
 import { useRouter } from "next/navigation";
 
 export const LoginForm: React.FC = () => {
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
 
-  // حالات الإدخال والتحميل والخطأ
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // دالة معالجة إرسال البيانات للباك إيند
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -26,21 +24,18 @@ export const LoginForm: React.FC = () => {
     setError("");
 
     try {
-      // إرسال البيانات الحقيقية إلى سيرفرات Clerk للتحقق من الحساب
       const result = await signIn.create({
         identifier: email,
         password,
       });
 
       if (result.status === "complete") {
-        // إنشاء الجلسة النشطة بنجاح والتوجيه للوحة التحكم
         await setActive({ session: result.createdSessionId });
         router.push("/m"); 
       } else {
         console.log(result);
       }
     } catch (err: any) {
-      // إظهار رسالة خطأ واضحة باللغة العربية عند إدخال بيانات خاطئة
       setError(err.errors?.[0]?.message || "خطأ في البريد الإلكتروني أو كلمة المرور");
     } finally {
       setLoading(false);
@@ -51,14 +46,12 @@ export const LoginForm: React.FC = () => {
     <>
       <form onSubmit={handleSubmit} className="w-full space-y-5" dir="rtl">
         
-        {/* صندوق عرض الأخطاء إن وجدت */}
         {error && (
           <div className="p-3.5 text-xs bg-red-50 text-red-500 rounded-xl font-bold text-center border border-red-100 animate-pulse">
             {error}
           </div>
         )}
 
-        {/* حقل البريد */}
         <div className="space-y-2 text-right">
           <label className="text-sm font-bold text-gray-700">
             البريد الإلكتروني أو رقم الهاتف
@@ -79,7 +72,6 @@ export const LoginForm: React.FC = () => {
           </div>
         </div>
 
-        {/* حقل كلمة المرور */}
         <div className="space-y-2 text-right">
           <div className="flex justify-between items-center">
             <label className="text-sm font-bold text-gray-700">
@@ -116,7 +108,6 @@ export const LoginForm: React.FC = () => {
           </div>
         </div>
 
-        {/* زر الدخول مع تعطيله أثناء التحميل لمنع التكرار */}
         <button
         type ="submit"
           disabled={loading}

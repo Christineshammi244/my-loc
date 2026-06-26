@@ -52,7 +52,6 @@ export function IdentityView() {
         }
     };
 
-    // دالة لحساب عدد الطلبات لكل تاب
     const getCount = (status: string) => allRequests.filter(r => r.status === status).length;
 
     if (loading) return (
@@ -64,7 +63,6 @@ export function IdentityView() {
     return (
         <div className="flex flex-col h-full gap-6 p-2" dir="rtl">
             
-            {/* 1. التابات مع العدادات وتحسين البحث */}
             <div className="flex flex-wrap items-center justify-between bg-white p-3 rounded-[1.5rem] border border-slate-200 shadow-sm gap-4">
                 <div className="flex bg-slate-50 p-1 rounded-xl gap-1">
                     {[
@@ -104,7 +102,6 @@ export function IdentityView() {
 
             <div className="flex flex-1 gap-6 overflow-hidden min-h-[600px]">
                 
-                {/* القائمة اليمنى: طلبات المستخدمين */}
                 <div className="w-80 bg-white rounded-[2rem] border border-slate-200 overflow-y-auto shadow-sm divide-y divide-slate-50">
                     {filteredRequests.length === 0 ? (
                         <div className="p-10 text-center space-y-3">
@@ -139,7 +136,6 @@ export function IdentityView() {
                     )}
                 </div>
 
-                {/* القسم الأيسر: مراجعة الوثائق والبيانات */}
                 <div className="flex-1 bg-white rounded-[2rem] border border-slate-200 p-8 overflow-y-auto shadow-sm custom-scrollbar">
                     {selectedReq ? (
                         <div className="space-y-10 animate-in slide-in-from-left-4 duration-500">
@@ -169,7 +165,6 @@ export function IdentityView() {
                                 </div>
                             </div>
 
-                            {/* 3. تنسيق صور الهوية الاحترافي */}
                             <div>
                                 <h4 className="text-sm font-black text-slate-900 mb-6 border-r-4 border-blue-600 pr-3 italic">الوثائق الرسمية المرفوعة</h4>
                                 <div className="grid gap-6 md:grid-cols-2">
@@ -196,7 +191,6 @@ export function IdentityView() {
                                 </div>
                             </div>
 
-                            {/* 4. ملاحظات المشرف وأزرار القرار */}
                             <div className="space-y-6 pt-6 border-t border-slate-100">
                                 <div>
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">ملاحظات المراجعة (تظهر للمستخدم عند الرفض):</label>

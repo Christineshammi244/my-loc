@@ -48,13 +48,11 @@ export default function StatsCards() {
 
   return (
     <div className="space-y-5 text-right mt-12" dir="rtl">
-      {/* عنوان القسم السفلي */}
       <h3 className="text-md font-bold text-gray-800 flex items-center gap-2 justify-start">
         <LineChart className="w-5 h-5 text-amber-500" />
         <span>إحصائيات المستخدمين الحالية</span>
       </h3>
 
-      {/* شبكة البطاقات */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((card, index) => {
           const Icon = card.icon;

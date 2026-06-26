@@ -15,7 +15,6 @@ export default function QuickTransaction() {
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* حقل البحث عن مستخدم */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-500">
             بحث عن مستخدم
@@ -30,7 +29,6 @@ export default function QuickTransaction() {
           </div>
         </div>
 
-        {/* نوع العقار */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-500">نوع العقار</label>
           <select className="w-full text-xs p-3 border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:border-[#008bf1] transition-all appearance-none">
@@ -40,7 +38,6 @@ export default function QuickTransaction() {
           </select>
         </div>
 
-        {/* قيمة المعاملة */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-500">
             قيمة المعاملة (ل.س)
@@ -53,7 +50,6 @@ export default function QuickTransaction() {
         </div>
       </div>
 
-      {/* تفاصيل المعاملة */}
       <div className="mt-5 space-y-1.5">
         <label className="text-xs font-bold text-gray-500">
           تفاصيل المعاملة
@@ -65,7 +61,6 @@ export default function QuickTransaction() {
         />
       </div>
 
-      {/* أزرار الحفظ */}
       <div className="mt-6 flex items-center justify-start gap-3">
         <button className="bg-[#008bf1] text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-[#007cd7] transition-all shadow-sm">
           حفظ المعاملة

@@ -11,7 +11,6 @@ export default function UserForm() {
       className="bg-white rounded-2xl border border-gray-100/80 p-10 shadow-sm text-center max-w-4xl mx-auto mt-6"
       dir="rtl"
     >
-      {/* العناوين الحرفية */}
       <h2 className="text-3xl text-right font-extrabold text-[#1e293b] mb-2 tracking-tight">
         إنشاء سجل مستخدم جديد
       </h2>
@@ -23,9 +22,7 @@ export default function UserForm() {
         onSubmit={(e) => e.preventDefault()}
         className="space-y-8 text-right"
       >
-        {/* الحقول النصية */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* حقل الاسم */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-600 block pr-1">
               اسم المستخدم الكامل
@@ -42,7 +39,6 @@ export default function UserForm() {
             </div>
           </div>
 
-          {/* حقل البريد */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-600 block pr-1">
               البريد الإلكتروني
@@ -61,7 +57,6 @@ export default function UserForm() {
           </div>
         </div>
 
-        {/* اختيار نوع المستخدم الثلاثي */}
         <div className="space-y-2.5">
           <label className="text-xs font-bold text-gray-600 block pr-1">
             نوع المستخدم
@@ -108,7 +103,6 @@ export default function UserForm() {
           </div>
         </div>
 
-        {/* زر الإرسال الملون */}
         <div className="flex justify-center pt-2">
           <button
             type="submit"

@@ -7,7 +7,6 @@ export default function SystemConfig() {
       className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm text-right"
       dir="rtl"
     >
-      {/* الرأس: العنوان وزر الحفظ */}
       <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-6">
         <div className="flex items-center gap-2 text-[#008bf1]">
           <Settings className="w-5 h-5" />
@@ -20,7 +19,6 @@ export default function SystemConfig() {
         </button>
       </div>
 
-      {/* الحقول المدخلة */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-bold text-gray-500">اسم المنصة</label>
@@ -43,7 +41,6 @@ export default function SystemConfig() {
         </div>
       </div>
 
-      {/* منطقة رفع الشعار */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-gray-500">
           شعار المنصة (Logo)

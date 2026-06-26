@@ -47,6 +47,7 @@ export default function PropertyDetailPage() {
         setProperty(updated);
         setShowRejectModal(false);
         router.refresh();
+        router.push("/admin/dashboard");
       }
     } catch (error) { alert("حدث خطأ في التحديث"); } finally { setUpdating(false); }
   };
@@ -58,7 +59,6 @@ export default function PropertyDetailPage() {
     <AdminShell activeNav="properties" searchPlaceholder="البحث عن العقارات">
       <div className="bg-[#F8FAFC] min-h-screen p-4 md:p-8 font-sans relative text-right" dir="rtl">
         
-        {/* نافذة الرفض */}
         {showRejectModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl text-center">
@@ -91,7 +91,6 @@ export default function PropertyDetailPage() {
               <h1 className="text-3xl font-black text-slate-900 leading-tight">{property.title}</h1>
             </div>
 
-            {/* أزرار الإجراءات مع خاصية التعطيل */}
             <div className="flex flex-wrap gap-3 w-full md:w-auto">
               <button onClick={() => window.open(`/property/${property.id}`, '_blank')} className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-slate-200 transition-all">
                 <Eye size={14}/> معاينة كزائر
@@ -116,7 +115,6 @@ export default function PropertyDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-8">
               
-              {/* معرض الصور مع معالجة حالة عدم وجود صور */}
               <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200/50">
                 <h3 className="text-sm font-black mb-6 flex items-center gap-2 text-slate-800 tracking-tight">📸 معرض الصور ({property.images?.length || 0})</h3>
                 {property.images && property.images.length > 0 ? (
@@ -140,7 +138,6 @@ export default function PropertyDetailPage() {
                 )}
               </div>
 
-              {/* المواصفات الفنية لملء الفراغ */}
               <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-200/50">
                 <h3 className="text-sm font-black mb-10 flex items-center gap-2 text-slate-800">🏗 المواصفات الفنية</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -160,7 +157,6 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            {/* الجانب الأيسر - Sidebar */}
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-[#051327] rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
                 <div className="flex items-center gap-2 text-blue-400 mb-4 text-xs font-bold">

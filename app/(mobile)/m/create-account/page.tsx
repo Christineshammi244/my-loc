@@ -3,6 +3,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/mobile/Footer";
+import{createUserAdminAction} from "@/app/actions/userActions";
+import {useRouter} from "next/navigation";
+import { useState } from "react";
 import {
   ArrowRight,
   Home,
@@ -15,8 +18,44 @@ import {
   Twitter,
 } from "lucide-react";
 import UserTypeSelection from "@/components/mobile/UserTypeSelection";
+  export default function RegisterPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  
+  // الـ States لربط المدخلات
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("user"); // القيمة الافتراضية
 
-export default function RegisterPage() {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // صياغة البيانات كـ FormData متوافقة مع الأكشن المعدل
+      const dataToSend = new FormData();
+      dataToSend.append("name", name);
+      dataToSend.append("email", email);
+      dataToSend.append("phone", phone);
+      dataToSend.append("password", password);
+      dataToSend.append("role", role);
+
+      const response = await createUserAdminAction(dataToSend);
+
+      if (response && response.success) {
+        alert("تم إنشاء حسابك بنجاح!");
+        router.push("/admin/transactions"); // التوجيه لصفحة لوحة التحكم
+      } else {
+        alert(response?.error || "حدث خطأ أثناء إنشاء الحساب");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("حدث خطأ في الاتصال بالخادم");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div
       className="min-h-screen bg-white flex flex-col justify-between font-sans antialiased selection:bg-sky-100"
@@ -66,7 +105,7 @@ export default function RegisterPage() {
         </div>
 
         {/* استمارة بيانات المستخدم */}
-        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-4" onSubmit={handleRegister}>
           {/* حقل: الاسم الكامل */}
           <div className="space-y-1 text-right">
             <label className="text-xs font-bold text-slate-700 block">
@@ -79,7 +118,10 @@ export default function RegisterPage() {
               <input
                 type="text"
                 placeholder="أدخل اسمك بالكامل"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-medium text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all text-right"
+              required
               />
             </div>
           </div>
@@ -96,7 +138,10 @@ export default function RegisterPage() {
               <input
                 type="email"
                 placeholder="example@mail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-mono text-right placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all"
+              required
               />
             </div>
           </div>
@@ -112,6 +157,8 @@ export default function RegisterPage() {
               <input
                 type="tel"
                 placeholder="+963 9xx xxx xxx"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-mono text-right placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all"
               />
             </div>
@@ -127,10 +174,13 @@ export default function RegisterPage() {
                 <Lock className="w-4 h-4" />
               </span>
               <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-mono text-right placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all"
-              />
+  type="password"
+  placeholder="••••••••"
+  value={password} // 👈 ربط القيمة
+  onChange={(e) => setPassword(e.target.value)} // 👈 تحديث القيمة عند الكتابة
+  className="w-full bg-slate-50 border border-gray-300 rounded-xl px-8 py-3 text-xs font-mono text-right"
+  required // حقل إلزامي لضمان عدم تركه فارغاً
+/>
             </div>
           </div>
 
@@ -140,9 +190,10 @@ export default function RegisterPage() {
           {/* زر التقديم النهائي: إنشاء حساب */}
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-[#008bf1] text-white py-3 rounded-xl font-bold text-xs hover:bg-[#007cd7] transition-all shadow-sm shadow-blue-500/10 mt-2"
           >
-            إنشاء حساب
+            {loading ? "جاري الإنشاء..." : "إنشاء حساب"}
           </button>
         </form>
 

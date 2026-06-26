@@ -14,9 +14,7 @@ export default function Footer({ isHome }: FooterProps) {
         dir="rtl"
       >
         <div className="container mx-auto px-6 md:px-12">
-          {/* تم تغيير عدد الأعمدة لـ 3 ليتناسب مع أقسامك */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-start text-right">
-            {/* القسم الأول: عقارك - أضفنا مسافة بعد md:order-3 */}
             <div className="md:order-1 space-y-4">
               <Link href="/" className="flex items-center gap-2">
                 <div className="bg-blue-600 p-1.5 rounded-lg flex items-center justify-center">
@@ -41,7 +39,6 @@ export default function Footer({ isHome }: FooterProps) {
               </div>
             </div>
 
-            {/* القسم الثاني: روابط سريعة - المنتصف */}
             <div className="md:order-2 flex flex-col md:items-center">
               <div className="w-full md:max-w-[200px]">
                 <h3 className="font-bold text-lg mb-2">روابط سريعة</h3>
@@ -75,7 +72,6 @@ export default function Footer({ isHome }: FooterProps) {
               </div>
             </div>
 
-            {/* القسم الثالث: المحافظات - أقصى اليسار */}
             <div className="md:order-3 flex flex-col md:items-start">
               <div className="w-full md:max-w-[200px]">
                 <h3 className="font-bold text-lg mb-2">عقارات المحافظات</h3>
@@ -118,7 +114,6 @@ export default function Footer({ isHome }: FooterProps) {
             </div>
           </div>
 
-          {/* حقوق النشر */}
           <div className="mt-12 pt-8 border-t border-white/10 text-center text-sm text-white/50">
             <p>
               &copy; {new Date().getFullYear()} عقارك سوريا. جميع الحقوق محفوظة

@@ -1,14 +1,13 @@
 import prisma from "@/lib/prisma";
 
 export default async function DisplayPropertiesPage() {
-  // جلب المعاملات من قاعدة البيانات مع بيانات العقار والشخص المرتبط بها
   const transactions = await prisma.transaction.findMany({
     include: {
-      property: true, // لجلب اسم العقار وسعره
-      user: true, // لجلب اسم الشخص الذي قام بالمعاملة
+      property: true,
+      user: true, 
     },
     orderBy: {
-      createdAt: "desc", // عرض الأحدث دائماً في الأعلى
+      createdAt: "desc", 
     },
   });
 

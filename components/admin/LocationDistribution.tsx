@@ -42,7 +42,6 @@ export default function LocationDistribution() {
         ))}
       </div>
 
-      {/* لمشة الخلفية الجغرافية الدائرية التي بالصورة أسفل اليسار */}
       <div className="absolute -bottom-6 -left-6 w-24 h-24 border-4 border-slate-100 rounded-full opacity-40 pointer-events-none flex items-center justify-center">
         <div className="w-16 h-16 border-2 border-slate-100 rounded-full"></div>
       </div>

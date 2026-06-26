@@ -3,66 +3,68 @@
 import React, { useState } from "react";
 import { UserPlus, Mail, Lock, Eye, EyeOff, Facebook } from "lucide-react";
 import Link from "next/link";
-import { useClerk, useSignIn } from "@clerk/nextjs"; // استيراد الـ hook الشامل فقط
 import { useRouter } from "next/navigation";
 import Footer from "@/components/mobile/Footer";
 import Header from "@/components/mobile/Header";
-
+import {loginUserAction} from "@/app/actions/userActions";
+import{useClerk ,useSignIn} from "@clerk/nextjs";
 export default function LoginPage() {
-  const clerk = useClerk(); // استخدام كائن كيرك الشامل
-  const signIn = useSignIn();
-  const setActive = clerk.setActive;
+  const clerk = useClerk();
+  const isReady=!!clerk;
   const router = useRouter();
-  // حالات الإدخال والتحميل والخطأ
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // دالة تسجيل الدخول العادي
-  // دالة تسجيل الدخول العادي
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [errorMsg, setErrorMsg] = useState(""); // لتخزين وعرض الخطأ الأحمر على الشاشة
+const[showPassword, setShowPassword] = useState(false);
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // التأكد من أن Clerk محمل بالكامل والـ signIn موجود
-    if (!clerk || !signIn) return;
-
     setLoading(true);
-    setError("");
+    setErrorMsg(""); // تصفير الخطأ عند كل محاولة جديدة
 
     try {
-      // وضع علامة تعجب بعد signIn لإخبار التايب سكريبت أنه موجود حتماً
-      const result = await signIn?.create({
-        identifier: email,
-        password,
-      });
+      const dataToSend = new FormData();
+      dataToSend.append("email", email);
+      dataToSend.append("password", password);
 
-      if (result && result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.push("/m"); 
+      const response = await loginUserAction(dataToSend);
+
+      if (response && response.success) {
+        alert("مرحباً بك! تم تسجيل الدخول بنجاح.");
+        // التوجيه التلقائي للأدمن أو الصفحة الرئيسية حسب صلاحية الحساب
+        if (response.user?.role === "admin" || response.user?.role === "ADMIN") {
+          window.location.href = "/admin/transactions";
+          
+        } else {
+          router.push("/");
+        }
+      } else {
+        // عرض الخطأ الأحمر القادم من السيرفر على الشاشة
+        setErrorMsg(response?.error || "خطأ في البريد الإلكتروني أو كلمة المرور");
       }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "خطأ في البريد الإلكتروني أو كلمة المرور");
+    } catch (error) {
+      console.error(error);
+      setErrorMsg("حدث خطأ في الاتصال بالخادم");
     } finally {
       setLoading(false);
     }
   };
-
   // دالة تسجيل الدخول الاجتماعي
   const handleOAuthSignIn = async (provider: "oauth_google" | "oauth_facebook") => {
+    if(!isReady)return;
     try {
+      
       // @ts-ignore
       await clerk.signIn?.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: "/m/sso-callback",
-        redirectUrlComplete: "/m",
+        redirectUrl: "/m",
+        redirectUrlComplete:"/m",
+        continueSignUp:true,
       });
     } catch (err) {
       console.error(err);
     }
   };
-
   return (
     <div className="min-h-screen flex flex-col bg-white" dir="rtl">
       <Header/>
@@ -79,10 +81,10 @@ export default function LoginPage() {
         </p>
 
         {/* نموذج تسجيل الدخول المباشر */}
-        <form onSubmit={handleSubmit} className="w-full space-y-5">
-          {error && (
+        <form onSubmit={handleLogin} className="w-full space-y-5">
+          {errorMsg && (
             <div className="p-3.5 text-xs bg-red-50 text-red-500 rounded-xl font-bold text-center border border-red-100">
-              {error}
+              {errorMsg}
             </div>
           )}
 
@@ -151,6 +153,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleOAuthSignIn("oauth_google")}
+              disabled={!isReady}
               className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all cursor-pointer"
             >
               <img src="https://svgrepo.com" alt="Google" className="w-4 h-4" />

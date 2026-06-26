@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 
 export default function DocumentTypeSelector() {
-  // النوع الافتراضي: بطاقة الهوية الشخصية كما في التصميم
   const [selectedDoc, setSelectedDoc] = useState<
     "id" | "passport" | "property"
   >("id");
@@ -14,7 +13,6 @@ export default function DocumentTypeSelector() {
       </h3>
 
       <div className="space-y-2.5">
-        {/* الخيار الأول: بطاقة الهوية الشخصية */}
         <label
           onClick={() => setSelectedDoc("id")}
           className={`flex items-center justify-end gap-3 flex-row-reverse p-4 rounded-xl border transition-all cursor-pointer ${
@@ -42,7 +40,6 @@ export default function DocumentTypeSelector() {
           </div>
         </label>
 
-        {/* الخيار الثاني: جواز السفر */}
         <label
           onClick={() => setSelectedDoc("passport")}
           className={`flex items-center justify-end gap-3 flex-row-reverse p-4 rounded-xl border transition-all cursor-pointer ${
@@ -70,7 +67,6 @@ export default function DocumentTypeSelector() {
           </div>
         </label>
 
-        {/* الخيار الثالث: سند ملكية العقار */}
         <label
           onClick={() => setSelectedDoc("property")}
           className={`flex items-center justify-end-3 gap-3 flex-row-reverse p-4 rounded-xl border transition-all cursor-pointer ${

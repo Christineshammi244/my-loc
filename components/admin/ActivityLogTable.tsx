@@ -31,7 +31,6 @@ export default function ActivityLogTable() {
       className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden text-right"
       dir="rtl"
     >
-      {/* هيدر اللوحة */}
       <div className="p-5 flex items-center justify-between border-b border-gray-50">
         <div className="flex items-center gap-2 text-slate-700">
           <Database className="w-5 h-5 text-slate-400" />
@@ -42,7 +41,6 @@ export default function ActivityLogTable() {
         </button>
       </div>
 
-      {/* الجدول المستجيب */}
       <div className="overflow-x-auto">
         <table className="w-full text-right border-collapse">
           <thead>

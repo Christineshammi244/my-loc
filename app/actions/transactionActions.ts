@@ -46,30 +46,67 @@ export async function updateChecklist(id: string, field: string, value: boolean)
 }
 
 // 4. الموافقة النهائية على المعاملة
+// 4. الموافقة النهائية على المعاملة وتفعيل العقار ليظهر بالموقع العام
 export async function approveTransaction(id: string) {
   try {
-    await prisma.transaction.update({
+    // 1. نجلب أولاً المعاملة لنعرف الـ propertyId المرتبط بها
+    const transaction = await prisma.transaction.findUnique({
       where: { id },
-      data: { status: "COMPLETED" }
+      select: { propertyId: true }
     });
+
+    if (!transaction || !transaction.propertyId) {
+      return { success: false, error: "المعاملة أو العقار غير موجود" };
+    }
+
+    // 2. نحدث حالة المعاملة إلى COMPLETED وحالة العقار المرتبط بها إلى APPROVED
+    await prisma.$transaction([
+      prisma.transaction.update({
+        where: { id },
+        data: { status: "COMPLETED" }
+      }),
+      prisma.property.update({
+        where: { id: transaction.propertyId },
+        data: { status: "APPROVED" } // تحديث حالة العقار ليصبح متاحاً للزوار
+      })
+    ]);
+
     revalidatePath("/admin/transactions");
+    revalidatePath("/"); // لتحديث الصفحة الرئيسية ليظهر العقار فوراً
     return { success: true };
   } catch (e) {
+    console.error("خطأ أثناء الاعتماد:", e);
     return { success: false, error: "فشل الاعتماد" };
   }
 }
 
-// 5. رفض المعاملة
+// 5. رفض المعاملة وإبقاء العقار مرفوضاً أو مخفياً
 export async function rejectTransaction(id: string) {
   try {
-    await prisma.transaction.update({
+    const transaction = await prisma.transaction.findUnique({
       where: { id },
-      data: { status: "REJECTED" }
+      select: { propertyId: true }
     });
+
+    await prisma.$transaction([
+      prisma.transaction.update({
+        where: { id },
+        data: { status: "REJECTED" }
+      }),
+      // اختياري: إذا أردتِ تحويل حالة العقار نفسه إلى مرفوض
+      ...(transaction?.propertyId ? [
+        prisma.property.update({
+          where: { id: transaction.propertyId },
+          data: { status: "REJECTED" }
+        })
+      ] : [])
+    ]);
+
     revalidatePath("/admin/transactions");
     return { success: true };
   } catch (e) {
-    return { success: false };
+    console.error("خطأ أثناء الرفض:", e);
+    return { success: false, error: "فشل الرفض" };
   }
 }
 export async function getRecentTransactions() {

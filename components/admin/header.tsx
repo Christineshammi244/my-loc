@@ -4,7 +4,6 @@ import { Bell, Search, Settings } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
-// توحيد تعريف الـ Props لضمان عمل كل الميزات المتداخلة
 type HeaderProps = {
   searchPlaceholder: string;
   searchValue?: string;
@@ -22,10 +21,8 @@ export default function Header({
   const { user } = useUser();
   const router = useRouter();
 
-  // دالة البحث عند الضغط على زر Enter لحسابات العقارات
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchValue) {
-      // تنظيف النص المكتوب ليصبح رقماً فقط (مثلاً SY-4829 يصبح 4829)
       const cleanId = searchValue.replace(/\D/g, "");
       if (cleanId) {
         router.push(`/admin/properties/${cleanId}`);
@@ -36,7 +33,6 @@ export default function Header({
   return (
     <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur">
       
-      {/* قسم البحث */}
       <div className="relative min-w-[200px] flex-1 max-w-2xl">
         <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
         <input
@@ -49,10 +45,8 @@ export default function Header({
         />
       </div>
 
-      {/* قسم الأزرار والبروفايل */}
       <div className="flex items-center gap-3 sm:gap-4">
         
-        {/* أزرار الإشعارات والإعدادات */}
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -72,10 +66,8 @@ export default function Header({
           </button>
         </div>
 
-        {/* فاصل جمالي */}
         <div className="h-6 w-[1px] bg-slate-200 hidden xs:block"></div>
 
-        {/* معلومات المستخدم والدخول عبر Clerk */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-right hidden md:block leading-tight">
             <p className="text-sm font-bold text-slate-900">
@@ -86,7 +78,6 @@ export default function Header({
             </p>
           </div>
 
-          {/* زر البروفايل الخاص بـ Clerk */}
           <UserButton />
         </div>
 

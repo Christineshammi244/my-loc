@@ -49,7 +49,6 @@ export default function UsersTable() {
       className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
       dir="rtl"
     >
-      {/* أدوات التصفية والتحكم العلوية */}
       <div className="p-5 border-b border-gray-50 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
           <button className="px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-[#008bf1] shadow-sm">
@@ -73,7 +72,6 @@ export default function UsersTable() {
         </div>
       </div>
 
-      {/* الجدول الاستجابي */}
       <div className="overflow-x-auto">
         <table className="w-full text-right border-collapse text-xs">
           <thead>
@@ -131,7 +129,6 @@ export default function UsersTable() {
         </table>
       </div>
 
-      {/* الترقيم السفلي (Pagination) */}
       <div className="p-4 border-t border-gray-50 flex items-center justify-between text-gray-400 font-bold text-[11px]">
         <span className="tabular-nums text-gray-500">
           عرض 1 إلى 10 من أصل 1,284 مستخدم
