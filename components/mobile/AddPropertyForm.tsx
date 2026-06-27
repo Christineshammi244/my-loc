@@ -1,6 +1,5 @@
 "use client";
 import Footer from "@/components/mobile/Footer";
-
 import Link from "next/link";
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";

@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ImagePlus } from "lucide-react";
+import { ArrowLeft, ImagePlus } from "lucide-react";
 import { PhoneShell } from "@/components/mobile/phone-shell";
-import { addProperty } from "@/app/actions/propertyActions"; // تأكدي من مسار ملف الأكشن لديكِ
+import { addProperty } from "@/app/actions/propertyActions"; 
+import { useState, use, startTransition } from "react";
 
 const propertyTypes = [
   { id: "APARTMENT", name: "شقة", icon: () => <span className="text-xl">🏢</span> },
@@ -13,6 +16,7 @@ const propertyTypes = [
 interface PageProps {
   searchParams: Promise<{
     step?: string;
+    success?: string;
     type?: string;
     title?: string;
     city?: string;
@@ -22,15 +26,13 @@ interface PageProps {
   }>;
 }
 
-export default async function AddPropertyPage({ searchParams }: { searchParams: Promise<{ step?: string; success?: string; type?: string; title?: string; city?: string; location?: string; price?: string; description?: string }> }) {
+export default function AddPropertyPage({ searchParams }: PageProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
   
-  // 1. فك محتويات الرابط وقراءتها
-  const params = await searchParams;
+  const params = use(searchParams);
   
-  // 2. قراءة متغير النجاح (إذا رجعنا من الأكشن بنجاح)
   const isSuccess = params.success === "true";
-
-  // 3. قراءة قيم الحقول الحالية الخاصة بالخطوات المتعددة (كودك القديم مصلح)
   const currentStep = Number(params.step) || 1;
   const selectedType = params.type || "APARTMENT";
   const currentTitle = params.title || "";
@@ -39,14 +41,41 @@ export default async function AddPropertyPage({ searchParams }: { searchParams: 
   const currentPrice = params.price || "";
   const currentDescription = params.description || "";
 
+  
+async function handleAction(formData: FormData) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    startTransition(async () => {
+      try {
+        // استقبال النتيجة الصافية من السيرفر للتأكد من نزولها بالداتابيز أولاً
+        const res = await addProperty(formData);
+        
+        if (res && 'success' in res && res.success) {
+          alert("تم إرسال طلبكِ بنجاح! سيتم مراجعة العقار من قِبل الإدارة والاستجابة خلال 24 ساعة لتقديمه لقسم المعاملات.");
+          // التحويل يتم هنا في المتصفح بأمان كامل بعد اكتمال الحفظ الحقيقي
+          window.location.href = "/m/add-property?success=true";
+        } else {
+          alert("فشلت عملية الحفظ: " + (res?.error || "خطأ غير معروف"));
+        }
+      } catch (error) {
+        console.error("Error submitting property:", error);
+        alert("حدث خطأ أثناء إرسال البيانات، يرجى إعادة المحاولة من جديد.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
+  }
   return (
     <PhoneShell title={currentStep === 1 ? "البيانات الأساسية" : currentStep === 2 ? "الأسعار والتفاصيل" : "صور العقار"}>
       <div className="rounded-2xl bg-white p-3">
+        
         {isSuccess && (
-    <div className="mb-4 p-3 bg-emerald-50 text-emerald-800 rounded-xl text-center border border-emerald-200 font-bold text-xs">
-      تم إدخال طلبك لمرحلة التقييم بنجاح، وتم توجيهه إلى الإدارة للمراجعة في قسم المعاملات.
-    </div>
-  )}
+          <div className="mb-4 p-3 bg-emerald-50 text-emerald-800 rounded-xl text-center border border-emerald-200 font-bold text-xs">
+            تم إدخال طلبك لمرحلة التقييم بنجاح، وتم توجيهه إلى الإدارة للمراجعة في قسم المعاملات.
+          </div>
+        )}
+
         {/* ================= الخطوة 1: البيانات الأساسية ================= */}
         {currentStep === 1 && (
           <form method="GET" action="" className="space-y-4">
@@ -74,9 +103,7 @@ export default async function AddPropertyPage({ searchParams }: { searchParams: 
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">عنوان الإعلان</label>
               <input type="text" name="title" defaultValue={currentTitle} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
+            </div><div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">المدينة</label>
                 <input type="text" name="city" defaultValue={currentCity} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
@@ -91,10 +118,8 @@ export default async function AddPropertyPage({ searchParams }: { searchParams: 
               التالي <ArrowLeft className="h-4 w-4" />
             </button>
           </form>
-        )}
-
-        {/* ================= الخطوة 2: تفاصيل السعر والوصف ================= */}
-          {currentStep === 2 && (
+        )}{/* ================= الخطوة 2: تفاصيل السعر والوصف ================= */}
+        {currentStep === 2 && (
           <form method="GET" action="" className="space-y-4">
             <input type="hidden" name="step" value="3" />
             <input type="hidden" name="type" value={selectedType} />
@@ -118,17 +143,9 @@ export default async function AddPropertyPage({ searchParams }: { searchParams: 
           </form>
         )}
 
-        {/* ================= الخطوة 3: رفع الصور والإرسال الفعلي لـ Prisma ================= */}
+        {/* ================= الخطوة 3: رفع الصور والمعاينة المباشرة ================= */}
         {currentStep === 3 && (
-        <form 
-  action={async (formData: FormData) => {
-    "use server";
-    await addProperty(formData);
-  }} 
-  
-  className="space-y-4"
->
-            {/* حقول مخفية تحمل البيانات الحقيقية المستخرجة من الـ URL */}
+          <form action={handleAction} className="space-y-4">
             <input type="hidden" name="title" value={currentTitle} />
             <input type="hidden" name="city" value={currentCity} />
             <input type="hidden" name="location" value={currentLocation} />
@@ -138,20 +155,51 @@ export default async function AddPropertyPage({ searchParams }: { searchParams: 
             <input type="hidden" name="category" value="RESIDENTIAL" />
 
             <div className="border-2 border-dashed border-blue-200 rounded-2xl p-6 bg-slate-50/50 text-center flex flex-col items-center justify-center min-h-[180px]">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-                <ImagePlus className="w-5 h-5 text-[#2e84d6]" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-800 mb-0.5">صور العقار</h3>
-              <p className="text-xs text-slate-400 mb-3">يمكنك رفع حتى 10 صور (JPG, PNG)</p>
+              
+              {/* شبكة الصور المختارة للمعاينة المباشرة فور الاختيار */}
+              {previewImages.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2 mb-4 w-full max-h-[160px] overflow-y-auto p-1">
+                  {previewImages.map((src, idx) => (
+                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border bg-white shadow-sm">
+                      <img src={src} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                    <ImagePlus className="w-5 h-5 text-[#2e84d6]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800 mb-0.5">صور العقار</h3>
+                  <p className="text-xs text-slate-400 mb-3">يمكنك رفع حتى 10 صور (JPG, PNG)</p>
+                </>
+              )}
               
               <label className="cursor-pointer bg-[#2e84d6] hover:bg-blue-600 text-white font-bold text-xs py-2 px-6 rounded-xl transition shadow-sm">
-                اختر الصور
-                <input type="file" name="propertyImages" accept="image/*" multiple className="hidden" required />
+                {previewImages.length > 0 ? "تغيير الصور الحالية" : "اختر الصور"}
+                <input 
+                  type="file" 
+                  name="images" 
+                  accept="image/*" 
+                  multiple 
+                  className="hidden" 
+                  required 
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const filesArray = Array.from(e.target.files);
+                      const urls = filesArray.map(file => URL.createObjectURL(file));setPreviewImages(urls); // توليد روابط المعاينة فوراً
+                    }
+                  }}
+                />
               </label>
             </div>
 
-            <button type="submit" className="w-full min-h-12 rounded-xl bg-emerald-600 font-bold text-white transition shadow-sm mt-2">
-              تأكيد وإضافة العقار نهائياً
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full min-h-12 rounded-xl bg-emerald-600 font-bold text-white transition shadow-sm mt-2 disabled:bg-slate-400 cursor-pointer"
+            >
+              {isSubmitting ? "جاري رفع الصور والبيانات..." : "تأكيد وإضافة العقار نهائياً"}
             </button>
           </form>
         )}

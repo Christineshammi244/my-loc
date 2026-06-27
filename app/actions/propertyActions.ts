@@ -1,13 +1,139 @@
 "use server";
 
-import prisma from "@/lib/prisma"; 
+import prisma from "../../lib/prisma"; 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 
 import fs from "fs/promises";
 import path from "path";
+ // تأكدي من مسار استيراد Prisma المتطابق لمشروعك
+import { v2 as cloudinary } from "cloudinary"; 
+import { redirect } from "next/navigation";
 
+// واجهة مخصصة لنتيجة العملية (اختياري، لترتيب الـ Types)
+type ActionResult = { success: boolean; error?: string; property?: any };
+export async function updatePropertyStatus(propertyId: string, newStatus: "APPROVED" | "REJECTED") {
+  try {
+    await prisma.property.update({
+      where: { id: Number(propertyId) },
+      data: { status: newStatus },
+    });
+    revalidatePath("/admin/property");
+    revalidatePath("/m/search-results");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    throw new Error("فشلت عملية تحديث حالة العقار");
+  }
+}
+export async function addProperty(formData: FormData): Promise<void | { success: boolean; error: string }> {
+  let isSuccessful = false;
+
+  try {
+     cloudinary.config({
+      cloud_name: "dlaim2umq",
+      api_key: "246545374644415",
+      api_secret: "DMAGZD0amQI5FjBbxL_kadFUj9g" // هذا هو الـ Secret الحقيقي المطابق لحساب الـ Root في صورتكِ السابقة
+    });
+    const session = await auth();
+    let userId = session?.userId;
+
+    // 1. جلب أول مستخدم حقيقي مسجل لربط العقار به
+    let dbUser = await prisma.user.findFirst();
+
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: {
+          id: userId || "admin_fallback_id",
+          phone: "0999999999",
+          name: "مسؤول النظام",
+          email: "admin@aqarak.com",
+          password: "wshisbcsbchjbsdcjbsdcj",
+        }
+      });
+    }
+
+    // 2. قراءة البيانات الأساسية من الفورم
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const price = parseFloat(formData.get("price") as string) || 0;
+    const city = formData.get("city") as string;
+    const location = formData.get("location") as string;
+    const type = formData.get("type") as string;
+    const category = formData.get("category") as string || "RESIDENTIAL";
+    
+    // 3. قراءة حقول المواصفات الفنية مع وضع قيم افتراضية لمنع انهيار قاعدة البيانات
+    const area = parseFloat(formData.get("area") as string) || 0;
+    const bedrooms = parseInt(formData.get("bedrooms") as string) || 0;
+    const bathrooms = parseInt(formData.get("bathrooms") as string) || 0;
+    const floor = (formData.get("floor") as string) || "0";
+
+    const imageFiles = formData.getAll("images") as File[]; 
+    const uploadedImagesUrls: string[] = [];
+
+    // 4. رفع الملفات إلى سحاب Cloudinary للحساب الرئيسي الموثق
+    for (const file of imageFiles) {
+      if (file && file.size > 0) {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "aqarak_properties" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+
+        if (uploadResult && uploadResult.secure_url) {
+          uploadedImagesUrls.push(uploadResult.secure_url);
+        }
+      }
+    }
+
+    // 5. الحفظ الفوري والآمن داخل جداول الـ Prisma مع تلبية كافة الشروط
+    await prisma.property.create({
+      data: {
+        title,
+        description,
+        price,
+        city,
+        location,
+        type,
+        category,
+        area,        // ممررة بأمان لمنع قيد الإجبار
+        bedrooms,    // ممررة بأمان لمنع قيد الإجبار
+        bathrooms,   // ممررة بأمان لمنع قيد الإجبار
+        floor,   
+        governorate:city,    // ممررة بأمان لمنع قيد الإجبار
+        ownerId: dbUser.id,
+        status: "PENDING",
+        images: {
+          create: uploadedImagesUrls.map((url) => ({
+            url: url,   
+          })),
+        },
+      },
+    }); 
+
+    revalidatePath("/admin/properties");
+    revalidatePath("/m/search-results");
+    revalidatePath("/");
+    isSuccessful = true;
+
+    return { success: true, error: "" };
+
+  } catch (error: any) {
+    const prismaErrorMessage = error?.message || "خطأ غير معروف";
+    // طباعة تفاصيل الخطأ الدقيقة بالكامل في الـ Terminal لتتبعها بصورة واضحة
+    console.error("خطأ فني في قاعدة البيانات -> ADD_PROPERTY_ERROR:", error);
+    return { success: false, error:`Prisma Error: ${prismaErrorMessage.substring(0,150)}` };
+  }
+}
 export async function createPropertyComplete(formData: FormData) {
   try {
     // 1. استخراج البيانات النصية
