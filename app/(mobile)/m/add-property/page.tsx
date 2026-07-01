@@ -23,6 +23,8 @@ interface PageProps {
     location?: string;
     price?: string;
     description?: string;
+    area?: number;
+    rooms?:  number;
   }>;
 }
 
@@ -40,7 +42,8 @@ export default function AddPropertyPage({ searchParams }: PageProps) {
   const currentLocation = params.location || "";
   const currentPrice = params.price || "";
   const currentDescription = params.description || "";
-
+  const currentarea = params.area  || "";
+  const currentrooms  = params.rooms  || "";
   
 async function handleAction(formData: FormData) {
     if (isSubmitting) return;
@@ -126,9 +129,10 @@ async function handleAction(formData: FormData) {
             <input type="hidden" name="title" value={currentTitle} />
             <input type="hidden" name="city" value={currentCity} />
             <input type="hidden" name="location" value={currentLocation} />
-
+            <input type="hidden" name="area" value={currentarea} />
+            <input type="hidden" name="rooms" value={currentrooms} />
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">السعر (ل.س)</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1">السعر ($)</label>
               <input type="number" name="price" defaultValue={currentPrice} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
             </div>
 
@@ -136,7 +140,14 @@ async function handleAction(formData: FormData) {
               <label className="block text-xs font-bold text-slate-500 mb-1">الوصف التفصيلي</label>
               <textarea name="description" defaultValue={currentDescription} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
             </div>
-
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">المساحة</label>
+              <textarea name="area" defaultValue={currentarea}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
+            </div>
+              <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">عدد الغرف</label>
+              <textarea name="rooms" defaultValue={currentrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
+            </div>
             <button type="submit" className="w-full min-h-11 rounded-xl bg-[#2e84d6] font-bold text-white flex items-center justify-center gap-1">
               التالي (صور العقار) <ArrowLeft className="h-4 w-4" />
             </button>

@@ -28,7 +28,8 @@ export async function getComments(propertyId) {
 // 2. إضافة تعليق جديد لعقار محدد
 export async function addComment(propertyId, text) {
     try {
-    const { userId } = await auth();
+  //  const { userId } = await auth();
+    const  userId  ="user_test123456";
     if (!userId) return { error: "يجب تسجيل الدخول أولاً" };
 
     const dbUser = await prisma.user.findUnique({
@@ -37,25 +38,28 @@ export async function addComment(propertyId, text) {
 
     if (!dbUser) return { error: "المستخدم غير مزامن" };
 
-    const newComment = await prisma.comment.create({
-        data: {
+      const newComment = await prisma.comment.create({
+      data: {
         content: text,
-        userId: dbUser.id, 
-        username: dbUser.name || "مستخدم مجهول", 
-        propertyId: parseInt(propertyId), 
-        },
+        userId: userId,
+        propertyId: parseInt(propertyId),
+      },
     });
-    revalidatePath(`/m/property-details/${propertyId}`); 
-    revalidatePath(`/m/properties/${propertyId}`);
-    return { success: true, comment: newComment };
-    } catch (error) {
+
+    revalidatePath(`/m/property-details/${propertyId}`);
+
+    return { 
+        success: true, 
+        comment: newComment 
+    };
+  } catch (error) {
     console.error("COMMENT_ERROR:", error);
-    return { error: "حدث خطأ أثناء إضافة التعليق" };
-    }
+    return { 
+      success: false, 
+      error: error.message || "حدث خطأ أثناء إضافة التعليق" 
+    };
+  }
 }
-
-
-
 
 export async function getMyComments() {
     try {

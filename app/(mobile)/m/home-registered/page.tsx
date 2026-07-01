@@ -13,7 +13,7 @@ export default function HomePage() {
     {
       id: 1,
       title: "فيلا مودرن - يعفور",
-      price: "2.4 مليار ل.س",
+      price: "30000 $",
       location: "ريف دمشق، يعفور، البوابة الرئيسية",
       imageUrl:
         "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600",

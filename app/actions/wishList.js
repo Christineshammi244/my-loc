@@ -6,7 +6,8 @@ import prisma from "@/lib/prisma";
 
 // 1. دالة إضافة أو حذف العقار من قائمة المفضلة (Toggle)
 export async function toggleWishlistAction(propertyId) {
-    const { userId } = await auth(); 
+    //const { userId } = await auth();
+    const  userId  ="user_test123456";
     if (!userId) {
         return { success: false, error: "يجب تسجيل الدخول أولاً" };
     }
@@ -35,8 +36,8 @@ export async function toggleWishlistAction(propertyId) {
                 data: { userId: userId, propertyId: numericPropertyId }
             });
             
-            revalidatePath("/","layout");
-          //  revalidatePath("/m/favorites");
+           // revalidatePath("/","layout");
+                revalidatePath("/m/favorites");
             //revalidatePath(`/property-details/${numericPropertyId}`);
             return { success: true, added: true, message: "تمت الإضافة إلى المفضلة" };
         }
@@ -74,27 +75,28 @@ export async function isLikedAction(propertyId) {
 // 3. دالة جلب كافة العقارات المفضلة للمستخدم الحالي (لعرضها في صفحة المفضلة)
 export async function getWishlist() {
     try {
-        const { userId } = await auth();
+       // const { userId } = await auth();
+        const  userId  ="user_test123456";
         if (!userId) return [];
 
         // جلب عناصر المفضلة مع تضمين بيانات العقار وصوره من العلاقات المحددة بالسكيما
-        const wishlistItems = await prisma.wishlist.findMany({
-            where: {
-                userId: userId,
-            },
-            include: {
-                property: {
-                    include: {
-                        images: true // جلب مصفوفة الصور لعرض الكرت بشكل كامل
-                    }
-                }
-            },
-            orderBy: {
-                createdAt: "desc"
-            }
-        });
+    const wishlistItems = await prisma.wishlist.findMany({
+        where: {
+        userId: userId,
+        },
+        include: {
+        property : {
+        include: {
+        images: true,
+            }, },
+        },
+        orderBy: {
+        createdAt: "desc",
+        },
+    });
 
-        // استخراج مصفوفة العقارات فقط لتبسيط قراءتها في الفرونت إيند مباشرة
+   // return wishlistItems;
+
         return wishlistItems.map(item => item.property);
     } catch (error) {
         console.error("GET_WISHLIST_ERROR:", error);

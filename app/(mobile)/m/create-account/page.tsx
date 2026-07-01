@@ -77,7 +77,7 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
           {/* يمكنك استبدال الرابط بمسار الصورة المحلي في مشروعك لاحقاً */}
           <img
-            src="https://images.unsplash.com/photo-1549576490-b0b4831ef60a?q=80&w=600&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=1600&auto=format&fit=crop"
             alt="عقارك"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
@@ -100,7 +100,7 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
             أهلاً بك في منصتنا
           </h1>
           <p className="text-xs text-gray-400 mt-1 font-medium">
-            ابدأ رحلتك العقارية اليوم في "عقارك" بكل سهولة وأمان
+ابدأ رحلتك العقارية اليوم في عقارك بكل سهولة وأمان
           </p>
         </div>
 
