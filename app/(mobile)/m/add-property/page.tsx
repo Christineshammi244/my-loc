@@ -49,20 +49,18 @@ export default function AddPropertyPage({ searchParams }: PageProps) {
   const currentrooms  = params.rooms  || "";
   const currentbathrooms  = params.bathrooms  ||   "";
   const currentfloor  = params.floor  ||   "";
-  const currentbedrooms  = params.bedrooms ||   "";
+  const currentbedrooms  = params.bedrooms  ||   "";
 async function handleAction(formData: FormData) {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
     startTransition(async () => {
       try {
-        // استقبال النتيجة الصافية من السيرفر للتأكد من نزولها بالداتابيز أولاً
         const res = await addProperty(formData);
         
         if (res && 'success' in res && res.success) {
-          alert("تم إرسال طلبكِ بنجاح! سيتم مراجعة العقار من قِبل الإدارة والاستجابة خلال 24 ساعة لتقديمه لقسم المعاملات.");
-          // التحويل يتم هنا في المتصفح بأمان كامل بعد اكتمال الحفظ الحقيقي
-          window.location.href = "/m/add-property?success=true";
+          // التعديل النهائي المباشر: التوجه فوراً لصفحة النجاح المخصصة بمشروعكِ
+          window.location.href = "/m/property-add-success";
         } else {
           alert("فشلت عملية الحفظ: " + (res?.error || "خطأ غير معروف"));
         }
@@ -121,6 +119,22 @@ async function handleAction(formData: FormData) {
                 <input type="text" name="city" defaultValue={currentfloor} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
               </div>
               <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">المساحة</label>
+                <input type="text" name="area" defaultValue={currentarea} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">عدد الحمامات</label>
+                <input type="text" name="bathroom" defaultValue={currentbathrooms} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">عدد غرف النوم</label>
+                <input type="text" name="bedroom" defaultValue={currentbedrooms} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">الطابق</label>
+                <input type="text" name="floor" defaultValue={currentfloor} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">الموقع / الحي</label>
                 <input type="text" name="location" defaultValue={currentLocation} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
               </div>
@@ -150,22 +164,7 @@ async function handleAction(formData: FormData) {
               <label className="block text-xs font-bold text-slate-500 mb-1">الوصف التفصيلي</label>
               <textarea name="description" defaultValue={currentDescription} rows={4} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">المساحة</label>
-              <textarea name="area" defaultValue={currentarea}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
-            </div>
-              <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">عدد الغرف</label>
-              <textarea name="rooms" defaultValue={currentrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
-            </div>
-              <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">عدد غرف النوم</label>
-              <textarea name="bedrooms" defaultValue={currentbedrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
-            </div>
-              <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">عدد الحمامات</label>
-              <textarea name="bathrooms" defaultValue={currentbathrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
-            </div>
+          
             <button type="submit" className="w-full min-h-11 rounded-xl bg-[#2e84d6] font-bold text-white flex items-center justify-center gap-1">
               التالي (صور العقار) <ArrowLeft className="h-4 w-4" />
             </button>

@@ -3,9 +3,10 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Footer from "@/components/mobile/Footer";
-import{createUserAdminAction} from "@/app/actions/userActions";
-import {useRouter} from "next/navigation";
+import { createUserAdminAction } from "@/app/actions/userActions";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useSignUp } from "@clerk/nextjs";
 import {
   ArrowRight,
   Home,
@@ -18,22 +19,33 @@ import {
   Twitter,
 } from "lucide-react";
 import UserTypeSelection from "@/components/mobile/UserTypeSelection";
-  export default function RegisterPage() {
+
+export default function RegisterPage() {
   const router = useRouter();
+  const { signUp } = useSignUp();
+  const isLoaded=signUp !== undefined;
   const [loading, setLoading] = useState(false);
   
-  // الـ States لربط المدخلات
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("user"); // القيمة الافتراضية
+  const [role, setRole] = useState("user");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoaded) return;
+    
     setLoading(true);
-    try {
-      // صياغة البيانات كـ FormData متوافقة مع الأكشن المعدل
+   try {
+      // 1. إنشاء الحساب المباشر داخل Clerk وتفعيل الجلسة فوراً دون انتظار كود
+      await signUp.create({
+        emailAddress: email,
+        password: password,
+        firstName: name,
+      });
+
+      // 2. صياغة البيانات وحفظها في قاعدة بيانات مشروعك
       const dataToSend = new FormData();
       dataToSend.append("name", name);
       dataToSend.append("email", email);
@@ -44,19 +56,21 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
       const response = await createUserAdminAction(dataToSend);
 
       if (response && response.success) {
-        alert("تم إنشاء حسابك بنجاح!");
-        router.push("/admin/transactions"); // التوجيه لصفحة لوحة التحكم
+        // 3. التوجيه المباشر لصفحة التوثيق لرفع الملفات (تخطياً لخطوة الرمز)
+        router.push("/m/verification-account"); 
       } else {
-        alert(response?.error || "حدث خطأ أثناء إنشاء الحساب");
+        alert(response?.error || "حدث خطأ أثناء إنشاء الحساب في قاعدة البيانات");
       }
-    } catch (error) {
+    }
+    catch (error: any) {
       console.error(error);
-      alert("حدث خطأ في الاتصال بالخادم");
+      alert(error.errors?.[0]?.message || "حدث خطأ في الاتصال بالخادم، يرجى التأكد من البيانات");
     } finally {
       setLoading(false);
     }
   };
-  return (
+
+   return (
     <div
       className="min-h-screen bg-white flex flex-col justify-between font-sans antialiased selection:bg-sky-100"
       dir="rtl"
@@ -70,21 +84,17 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
         </h1>
       </div>
 
-      {/* 1. القسم العلوي: الصورة الإرشادية وزر العودة */}
       <div className="w-full max-w-md mx-auto relative aspect-[16/10] overflow-hidden bg-slate-100 group">
-        {/* الصورة الرئيسية للعقار الريفي */}
         <div className="w-full h-full relative">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
-          {/* يمكنك استبدال الرابط بمسار الصورة المحلي في مشروعك لاحقاً */}
           <img
-            src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=1600&auto=format&fit=crop"
+            src="https://unsplash.com"
             alt="عقارك"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
         </div>
 
-        {/* وسم شعار المنصة العائم أسفل يسار الصورة */}
-        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5   px-3 py-1.5 rounded-xl   shadow-sm text-[#008bf1] font-black text-xs">
+        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-sm text-[#008bf1] font-black text-xs">
           <div className="bg-[#008bf1] text-white p-1.5 rounded-md">
             <Home className="w-5 h-5" />
           </div>
@@ -92,9 +102,7 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
         </div>
       </div>
 
-      {/* 2. محتوى الإدخال والاستمارة (Form Section) */}
       <main className="flex-1 max-w-md mx-auto w-full px-6 py-6 flex flex-col justify-center">
-        {/* نصوص الترحيب الافتتاحية */}
         <div className="text-right mb-6">
           <h1 className="text-xl font-black text-slate-800 tracking-tight">
             أهلاً بك في منصتنا
@@ -102,11 +110,7 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
           <p className="text-xs text-gray-400 mt-1 font-medium">
 ابدأ رحلتك العقارية اليوم في عقارك بكل سهولة وأمان
           </p>
-        </div>
-
-        {/* استمارة بيانات المستخدم */}
-        <form className="space-y-4" onSubmit={handleRegister}>
-          {/* حقل: الاسم الكامل */}
+        </div><form className="space-y-4" onSubmit={handleRegister}>
           <div className="space-y-1 text-right">
             <label className="text-xs font-bold text-slate-700 block">
               الاسم الكامل
@@ -121,12 +125,11 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-medium text-slate-800 placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all text-right"
-              required
+                required
               />
             </div>
           </div>
 
-          {/* حقل: البريد الإلكتروني */}
           <div className="space-y-1 text-right">
             <label className="text-xs font-bold text-slate-700 block">
               البريد الإلكتروني
@@ -141,11 +144,11 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-slate-50 border border-gray-100 rounded-xl px-8 py-3 text-xs font-mono text-right placeholder-gray-400 focus:outline-none focus:border-[#008bf1] focus:bg-white transition-all"
-              required
+                required
               />
             </div>
           </div>
-          {/* حقل: رقم الهاتف مع مقدمة الدولة المدمجة بالتصميم */}
+
           <div className="space-y-1 text-right">
             <label className="text-xs font-bold text-slate-700 block">
               رقم الهاتف
@@ -164,30 +167,28 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
             </div>
           </div>
 
-          {/* حقل: كلمة المرور */}
           <div className="space-y-1 text-right">
             <label className="text-xs font-bold text-slate-700 block">
               كلمة المرور
             </label>
+          
             <div className="relative">
               <span className="absolute inset-y-0 right-3 flex items-center text-gray-400">
                 <Lock className="w-4 h-4" />
               </span>
               <input
-  type="password"
-  placeholder="••••••••"
-  value={password} // 👈 ربط القيمة
-  onChange={(e) => setPassword(e.target.value)} // 👈 تحديث القيمة عند الكتابة
-  className="w-full bg-slate-50 border border-gray-300 rounded-xl px-8 py-3 text-xs font-mono text-right"
-  required // حقل إلزامي لضمان عدم تركه فارغاً
-/>
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-50 border border-gray-300 rounded-xl px-8 py-3 text-xs font-mono text-right"
+                required
+              />
             </div>
           </div>
-
-          {/* استدعاء مكون اختيار نوع الحساب التفاعلي المستقل */}
+<div id="clerk-captcha"></div>
           <UserTypeSelection />
 
-          {/* زر التقديم النهائي: إنشاء حساب */}
           <button
             type="submit"
             disabled={loading}
@@ -197,7 +198,6 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
           </button>
         </form>
 
-        {/* نص الانتقال لتسجيل الدخول للحسابات الحالية */}
         <div className="text-center mt-5 text-[11px] font-bold text-gray-400">
           <span>لديك حساب بالفعل؟ </span>
           <Link href="/m/login" className="text-[#008bf1] hover:underline">
@@ -205,37 +205,32 @@ import UserTypeSelection from "@/components/mobile/UserTypeSelection";
           </Link>
         </div>
 
-        {/* فاصل "أو عبر" للمصادقة الخارجية */}
         <div className="relative flex items-center justify-center my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100"></div>
+                <div className="w-full border-t border-gray-100"></div>
           </div>
           <span className="relative z-10 bg-white px-3 text-[10px] font-bold text-gray-400">
             أو عبر
           </span>
         </div>
 
-        {/* أزرار تسجيل الدخول الاجتماعي بملصقات وشعارات دقيقة */}
         <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto w-full">
-          {/* زر المصادقة: Google */}
-          <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
+          <button type="button" className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
             <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              src="https://svgrepo.com"
               alt="Google"
               className="w-4 h-4"
             />
             <span className="font-sans text-[11px]">Google</span>
           </button>
 
-          {/* زر المصادقة: Facebook */}
-          <button className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
+          <button type="button" className="flex items-center justify-center gap-2 border border-gray-100 rounded-xl py-2 px-4 text-xs font-bold text-slate-700 bg-slate-50/50 hover:bg-slate-50 transition-all">
             <Facebook className="w-4 h-4 text-[#1877F2] fill-[#1877F2]" />
             <span className="font-sans text-[11px]">Facebook</span>
           </button>
         </div>
       </main>
 
-      {/* 3. الفوتر السفلي المتناسق للمنصة */}
       <Footer isHome={false} />
     </div>
   );
