@@ -1,7 +1,7 @@
 import Header from "@/components/mobile/Header";
 import Footer from "@/components/mobile/Footer";
 import PropertyCardRegister from "@/components/mobile/PropertyCardRegister";
-import { auth } from "@clerk/nextjs/server"; // استيراد دالة السيرفر الصحيحة لـ Clerk
+import { auth,currentUser } from "@clerk/nextjs/server"; // استيراد دالة السيرفر الصحيحة لـ Clerk
 import prisma from "@/lib/prisma"; 
 import React from "react";
 import Sidebar from "@/components/mobile/SidebarVisit";
@@ -14,13 +14,9 @@ export default async function Home() {
   if (!userId) {
     redirect("/m/login");
   }
-  const dbUser =  await prisma.user.findUnique({
-    where: { id: userId },
-    select: { name: true }
-  });
   
-  const userName = dbUser?.name || "Angel Harb";
-
+  const user = await currentUser();
+const  userName = user?.firstName || "Angel Harb";
   
   const properties = await prisma.property.findMany({
     where: {
