@@ -1,6 +1,6 @@
 generator client {
     provider = "prisma-client-js"
-    
+    binaryTargets = ["native","rhel-jwt-4"]
 }
 datasource db {
     provider = "sqlite"
