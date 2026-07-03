@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import React from "react";
 import { Calendar } from "lucide-react";
 import Sidebar from "@/components/admin/sidebar";
@@ -55,7 +56,7 @@ export default async function AdminDashboardMainPage() {
               totalProperties={totalProperties}
               totalTransactions={totalTransactions}
               verificationRequests={verificationRequests}
-              
+
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
