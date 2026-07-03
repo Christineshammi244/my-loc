@@ -55,6 +55,7 @@ export default async function AdminDashboardMainPage() {
               totalProperties={totalProperties}
               totalTransactions={totalTransactions}
               verificationRequests={verificationRequests}
+              
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -80,7 +81,7 @@ export default async function AdminDashboardMainPage() {
               </div>
 
             </div>
-          </div>
+          
         </main>
       </div>
     </div>
