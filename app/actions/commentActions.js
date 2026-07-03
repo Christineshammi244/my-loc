@@ -28,8 +28,7 @@ export async function getComments(propertyId) {
 // 2. إضافة تعليق جديد لعقار محدد
 export async function addComment(propertyId, text) {
     try {
-    // const { userId } = await auth(); 
-    const userId = "user_test123456";
+    const { userId } = await auth();
     if (!userId) return { error: "يجب تسجيل الدخول أولاً" };
 
     const dbUser = await prisma.user.findUnique({
@@ -38,45 +37,25 @@ export async function addComment(propertyId, text) {
 
     if (!dbUser) return { error: "المستخدم غير متزامن" };
 
-    // 1. إنشاء التعليق وتخزينه في متحول
     const newComment = await prisma.comment.create({
         data: {
         content: text,
-        userId: userId,
-        propertyId: parseInt(propertyId),
+        userId: dbUser.id, 
+        username: dbUser.name || "مستخدم مجهول", 
+        propertyId: parseInt(propertyId), 
         },
     });
-
-    // تحديث مسارات الكاش في الفرونت إند
-    revalidatePath(`/m/property-details/${propertyId}`);
-    revalidatePath('/m/comments');
-    revalidatePath('/m/my-comments');
-    revalidatePath('/m/notifications');
-
-    // 2. فكرتكِ الذكية: إنشاء الإشعار وتخزينه في متحول مستقل
-    const newNotification = await prisma.notification.create({
-        data: {
-        userId: userId, 
-        title: "تعليق جديد 💬",
-        message: "تمت إضافة تعليق جديد على العقار: " + text.substring(0, 30) + "..."
-        }
-    });
-    
-    // إرجاع النتيجة بنجاح مع السجلات التي تم إنشاؤها
-    return { 
-        success: true, 
-        comment: newComment,
-        notification: newNotification 
-    };
-
+    revalidatePath(`/m/property-details/${propertyId}`); 
+    revalidatePath(`/m/properties/${propertyId}`);
+    return { success: true, comment: newComment };
     } catch (error) {
     console.error("COMMENT_ERROR:", error);
-    return {
-        success: false,
-        error: error.message || "حدث خطأ أثناء إضافة التعليق"
-    };
+    return { error: "حدث خطأ أثناء إضافة التعليق" };
     }
 }
+
+
+
 
 export async function getMyComments() {
     try {

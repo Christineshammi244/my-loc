@@ -17,7 +17,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState(""); // لتخزين وعرض الخطأ الأحمر على الشاشة
 const[showPassword, setShowPassword] = useState(false);
-const {signIn,isLoaded}=useSignIn();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -55,15 +54,13 @@ const {signIn,isLoaded}=useSignIn();
     if(!isReady)return;
     try {
       
-      if(clerk && clerk.signIn){
-      
-      await clerk.signIn.authenticateWithRedirect({
+      // @ts-ignore
+      await clerk.signIn?.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: "/m",
         redirectUrlComplete:"/m",
         continueSignUp:true,
       });
-    }
     } catch (err) {
       console.error(err);
     }

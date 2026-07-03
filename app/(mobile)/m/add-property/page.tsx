@@ -156,7 +156,7 @@ async function handleAction(formData: FormData) {
             <input type="hidden" name="rooms" value={currentrooms} />
             <input type="hidden" name="bathrooms" value={currentbathrooms} />
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">السعر ($)</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1">السعر (ل.س)</label>
               <input type="number" name="price" defaultValue={currentPrice} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
             </div>
 

@@ -108,7 +108,7 @@ export default function RegisterPage() {
             أهلاً بك في منصتنا
           </h1>
           <p className="text-xs text-gray-400 mt-1 font-medium">
-ابدأ رحلتك العقارية اليوم في عقارك بكل سهولة وأمان
+            ابدأ رحلتك العقارية اليوم في "عقارك" بكل سهولة وأمان
           </p>
         </div><form className="space-y-4" onSubmit={handleRegister}>
           <div className="space-y-1 text-right">

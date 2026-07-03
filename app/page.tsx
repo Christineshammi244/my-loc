@@ -1,19 +1,19 @@
 import Header from "@/components/mobile/Header";
 import Footer from "@/components/mobile/Footer";
-import PropertyCardRegister from "@/components/mobile/PropertyCardRegister"; // المكون المصلح
-import  {auth}  from "@clerk/nextjs/server";// استدعاء مكتبة الجلسة الخاصة بمشروعك
-import  prisma  from "@/lib/prisma"; // استيراد Prisma
+import PropertyCardRegister from "@/components/mobile/PropertyCardRegister";
+import { auth } from "@clerk/nextjs/server"; // استيراد دالة السيرفر الصحيحة لـ Clerk
+import prisma from "@/lib/prisma"; 
 import React from "react";
 import Sidebar from "@/components/mobile/SidebarVisit";
 import HeroSection from "@/components/mobile/HeroSection";
 
 export default async function Home() {
-  
-  const session = await auth();
-  const userId = session?.userId;
+  // جلب الجلسة والـ userId مباشرة من السيرفر بشكل آمن وسريع جداً
+  const { userId } = await auth();
+
   if (!userId) {
-    return <div>الرجاء تسجيل الدخول أولاً</div>; 
-}
+    return <div className="text-center py-10 font-bold text-slate-700">الرجاء تسجيل الدخول أولاً</div>;
+  }
   const dbUser =  await prisma.user.findUnique({
     where: { id: userId },
     select: { name: true }
@@ -40,7 +40,9 @@ export default async function Home() {
     <div className="min-h-screen bg-white" dir="rtl">
       {/* تمرير تفعيل الأقسام للواجهة */}
       {/* ملاحظة: التحكم في فتح وإغلاق السايدبار يتم الآن بداخل المكونات أو عبر ميكانيزم السيرفر */}
-      <Sidebar isOpen={false} onClose={() => {}} />
+      {/*// @ts-ignore */}
+      <Sidebar />
+    
       <Header />
 
       {/* 3. تمرير اسم المستخدم الفعلي القادم من قاعدة البيانات للـ HeroSection */}

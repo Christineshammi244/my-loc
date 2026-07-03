@@ -102,8 +102,7 @@ export default function HomePage({ userName }: { userName:string }) {
           
           </a>
         </div>
-
-        {/* قائمة العقارات المميزة الديناميكية القادمة من قاعدة البيانات */}
+{/* قائمة العقارات المميزة الديناميكية القادمة من قاعدة البيانات */}
         <div className="flex flex-col">
           {loading ? (
             <p className="text-center py-10 text-sm text-gray-500">جاري تحميل العقارات...</p>
@@ -138,14 +137,3 @@ export default function HomePage({ userName }: { userName:string }) {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

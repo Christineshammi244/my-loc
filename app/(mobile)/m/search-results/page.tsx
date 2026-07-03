@@ -74,7 +74,7 @@ const properties = result.success ? result.data : [];
           <div className="p-2">
             <h3 className="text-3xl font-extrabold">{property.title}</h3>
             <p className="text-4xl font-extrabold text-slate-900">
-              {property.price.toLocaleString("ar-SY")} $
+              {property.price.toLocaleString("ar-SY")} ل.س
             </p>
             <p className="text-sm text-slate-500 mt-1">{property.location}</p>
             

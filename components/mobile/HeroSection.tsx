@@ -1,5 +1,5 @@
 import { ChevronDown, Search, MapPin } from "lucide-react";
-import link from "next/link";
+import Link from "next/link"; // تأكد من تعديل المسار حسب مشروعكِ
 interface category {
   name: string;
   active: boolean;
@@ -90,7 +90,7 @@ export default function HeroSection({userName}:{userName:string}): React.JSX.Ele
               </div>
             </div>
 
-              <link
+              <Link
               href="/m/search-results"
               className="w-full bg-[#fbfcfd] border-t border-gray-100 py-2.5 px-4  text-[11px] text-[#0083b0] font-medium flex items-center justify-start gap-3 hover:bg-gray-50/50 transition-colors"
         
@@ -98,7 +98,7 @@ export default function HeroSection({userName}:{userName:string}): React.JSX.Ele
               <Search size={13} strokeWidth={205} />
               <span>ابدأ البحث</span>
               
-            </link>
+            </Link>
           </div>
         </div>
       </section>
