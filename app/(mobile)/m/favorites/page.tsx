@@ -12,13 +12,12 @@ export default async function FavoritesPage() {
   return (
     <PhoneShell title="عقاراتي المفضلة">
       <div className="rounded-2xl bg-white p-4">
-        {/* أزرار التصفية العلوية الثابتة الخاصة بكِ */}
         <div className="mb-2 flex justify-end gap-5 px-2 text-lg font-bold">
           <button>قائمة</button>
     
         </div>
 
-        {/* حلقة التكرار الديناميكية النظيفة المتوافقة تلقائياً مع السكيما بدون any */}
+      
         {properties?.map((property) => (
           <article key={property.id} className="rounded-2xl bg-white p-3 mb-3 border border-slate-100">
             <div className="relative mb-3 h-36 overflow-hidden rounded-xl">
@@ -38,9 +37,9 @@ export default async function FavoritesPage() {
             <p className="text-4xl font-extrabold text-amber-600 text-right mt-1">
               {property.price?.toLocaleString("ar-SY")} $
             </p>
-   <form action={async () => {
-  await toggleWishlistAction(property.id);
-}}>
+    <form action={async ()=> {
+      "use server";
+      await toggleWishlistAction(property.id)}}>
   <button
     type="submit"
     className="mt-3 w-full rounded-xl border border-red-100 py-2 text-center"

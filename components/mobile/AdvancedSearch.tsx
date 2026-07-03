@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Search, ChevronDown } from "lucide-react";
-
+import Link from "next/link";
 export default function AdvancedSearch() {
   return (
     <div
@@ -103,10 +103,15 @@ export default function AdvancedSearch() {
         </div>
       </div>
 
-      <button className="w-full bg-[#cca43b] hover:bg-[#b89332] text-white text-sm font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99]">
-        <Search size={16} strokeWidth={2.5} />
-        <span>ابدأ البحث</span>
-      </button>
+        <Link
+              href="/m/search-results"
+              className="w-full bg-[#fbfcfd] border-t border-gray-100 py-2.5 px-4  text-[11px] text-[#0083b0] font-medium flex items-center justify-start gap-3 hover:bg-gray-50/50 transition-colors"
+        
+            >
+              <Search size={13} strokeWidth={205} />
+              <span>ابدأ البحث</span>
+              
+            </Link>
     </div>
   );
 }

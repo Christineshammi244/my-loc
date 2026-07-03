@@ -22,8 +22,8 @@ interface PropertyProps {
   loc: string;
   space: string;
   img: string;
-  rooms?: any;
-  baths?: any;
+  rooms?: number;
+  baths?: number;
   isFarm?: boolean;
 }
 export default function PropertyCard({

@@ -1,10 +1,11 @@
 import { ChevronDown, Search, MapPin } from "lucide-react";
+import link from "next/link";
 interface category {
   name: string;
   active: boolean;
 }
 
-export default function HeroSection(): React.JSX.Element {
+export default function HeroSection({userName}:{userName:string}): React.JSX.Element {
   const categories = [
     { name: "شقق", active: false },
     { name: "فلل وقصور", active: false },
@@ -27,7 +28,7 @@ export default function HeroSection(): React.JSX.Element {
             ابحث عن منزل أحلامك في سوريا
           </h1>
           <p className="text-xl text-white opacity-90 mb-12 max-w-lg">
-            أكبر منصة عقارية لبيع وتأجير العقارات في دمشق وحلب واللاذقية
+              أكبر منصة عقارية لبيع وتأجير العقارات 
           </p>
           <div className=" bg-white p-5 rounded-2xl shadow-xl w-full ">
             <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -89,9 +90,15 @@ export default function HeroSection(): React.JSX.Element {
               </div>
             </div>
 
-            <button className="w-full bg-[#0984E3] text-white py-4 px-6 rounded-xl text-xl font-bold flex items-center justify-center gap-3 hover:bg-[#0070c3] transition-colors">
-              بحث سريع
-            </button>
+              <link
+              href="/m/search-results"
+              className="w-full bg-[#fbfcfd] border-t border-gray-100 py-2.5 px-4  text-[11px] text-[#0083b0] font-medium flex items-center justify-start gap-3 hover:bg-gray-50/50 transition-colors"
+        
+            >
+              <Search size={13} strokeWidth={205} />
+              <span>ابدأ البحث</span>
+              
+            </link>
           </div>
         </div>
       </section>

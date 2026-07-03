@@ -1,12 +1,12 @@
 import { MessageCircleMore, Send } from "lucide-react";
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import Link from "next/link";
-
+import {getMyComments,addComment} from "@/app/actions/commentActions"
 // تأكدي من استيراد الدوال التالية من ملفها الصحيح إذا كانت مفقودة
 // import { getComments, addComment } from "@/actions/comments"; 
 
 export default async function CommentsPage() {
-  const comments = await getComments();
+  const comments = await getMyComments();
 
   return (
     <PhoneShell title="التعليقات">
@@ -42,9 +42,9 @@ export default async function CommentsPage() {
         {/* عرض التعليقات الفعلية القادمة من السيرفر */}
         {comments?.map((comment, index) => (
           <article key={comment.id} className="mb-3 rounded-2xl border border-slate-200 p-3">
-            <p className="text-right text-lg font-bold">{comment.userName || "مستخدم"}</p>
+            <p className="text-right text-lg font-bold">{comment.propertyId || "مستخدم"}</p>
             <p className="mt-2 text-center text-slate-700">
-              {comment.text}
+              {comment.content}
             </p>
             <button
               type="button"
@@ -58,8 +58,10 @@ export default async function CommentsPage() {
               <form 
                 action={async (formData) => {
                   "use server"
-                  const text = formData.get("text") as string;
-                  if (text) await addComment(comment.propertyId, text);
+                  
+                  const text=formData.get("text") as string;
+                    
+                    await addComment(comment.propertyId, text);
                 }}
                 className="mt-3 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2"
               >

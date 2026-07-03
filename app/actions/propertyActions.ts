@@ -1,19 +1,28 @@
 "use server";
 
-import prisma from "../../lib/prisma"; 
+import prisma from "@/lib/prisma"; 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-
+import { Prisma } from "@prisma/client";
 
 import fs from "fs/promises";
 import path from "path";
  // تأكدي من مسار استيراد Prisma المتطابق لمشروعك
 import { v2 as cloudinary } from "cloudinary"; 
 import { redirect } from "next/navigation";
-
+export interface PropertyParams {
+  id?: string;
+  city?: string;
+  category?: string;
+  roomCount?: string;
+  title?: string;
+  price?: number;
+  type?: string;
+  query?: string;
+}
 // واجهة مخصصة لنتيجة العملية (اختياري، لترتيب الـ Types)
-type ActionResult = { success: boolean; error?: string; property?: any };
-export async function updatePropertyStatus(propertyId: string, newStatus: "APPROVED" | "REJECTED") {
+type ActionResult = { success: boolean; error?: string; property?: PropertyParams };
+export async function updatePropertyStatus(propertyId: string, newStatus: "APPROVED" | "REJECTED" | string ): Promise<ActionResult> {
   try {
     await prisma.property.update({
       where: { id: Number(propertyId) },
@@ -38,7 +47,7 @@ export async function addProperty(formData: FormData): Promise<void | { success:
       api_secret: "DMAGZD0amQI5FjBbxL_kadFUj9g" // هذا هو الـ Secret الحقيقي المطابق لحساب الـ Root في صورتكِ السابقة
     });
     const session = await auth();
-    let userId = session?.userId;
+    const userId = session?.userId;
 
     // 1. جلب أول مستخدم حقيقي مسجل لربط العقار به
     let dbUser = await prisma.user.findFirst();
@@ -78,13 +87,15 @@ export async function addProperty(formData: FormData): Promise<void | { success:
       if (file && file.size > 0) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-
-        const uploadResult = await new Promise<any>((resolve, reject) => {
+interface CloudinaryResult {
+  secure_url: string;
+}
+        const uploadResult = await new Promise<CloudinaryResult>((resolve, reject) => {
           cloudinary.uploader.upload_stream(
             { folder: "aqarak_properties" },
             (error, result) => {
               if (error) reject(error);
-              else resolve(result);
+              else resolve(result as unknown as CloudinaryResult);
             }
           ).end(buffer);
         });
@@ -127,8 +138,8 @@ export async function addProperty(formData: FormData): Promise<void | { success:
 
     return { success: true, error: "" };
 
-  } catch (error: any) {
-    const prismaErrorMessage = error?.message || "خطأ غير معروف";
+  } catch (error: unknown) {
+    const prismaErrorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
     // طباعة تفاصيل الخطأ الدقيقة بالكامل في الـ Terminal لتتبعها بصورة واضحة
     console.error("خطأ فني في قاعدة البيانات -> ADD_PROPERTY_ERROR:", error);
     return { success: false, error:`Prisma Error: ${prismaErrorMessage.substring(0,150)}` };
@@ -214,7 +225,7 @@ export async function createPropertyComplete(formData: FormData) {
 }
 // 2. دالة البحث والفلترة العامة
 // ==========================================
-export async function searchProperties(filters: any) {
+export async function searchProperties(filters: PropertyParams) {
   try {
     const searchquery = filters?.query || "";
     const typequery = filters?.type || "";
@@ -281,10 +292,12 @@ export async function searchProperties(filters: any) {
 // ==========================================
 // 3. دالة جلب العقارات المفلترة (الرئيسية مع منطق الغرف الكامل)
 // ==========================================
-export async function getProperties(params: any) {
+export async function getProperties(params: PropertyParams) {
+  
+
   try {
     const { city, category, roomCount, title } = params || {};
-    let query: any = {};
+    const query: Prisma.PropertyWhereInput= {};
 
     if (city) {
       query.city = city;

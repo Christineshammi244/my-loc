@@ -1,8 +1,8 @@
 import React from "react";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-
-export default function WelcomeBanner() {
+import prisma from "@/lib/prisma";
+export default function WelcomeBanner({userName}:{userName:string}) {
   return (
     <div className="mx-4 mt-4 bg-gradient-to-br from-[#00b4db] bg-[#1ea0df] rounded-2xl p-5 text-white relative overflow-hidden shadow-sm">
       {/* الرسمة الخلفية الخفيفة للمنزل يمكن تمثيلها بـ Opacity */}
@@ -10,7 +10,7 @@ export default function WelcomeBanner() {
         <span className="text-8xl">🏠</span>
       </div>
 
-      <h1 className="text-xl font-bold mb-1">أهلاً بك مجدداً، أحمد</h1>
+      <h1 className="text-xl font-bold mb-1">{`أهلاً بك مجدداً${userName}`}</h1>
       <p className="text-xs text-blue-50 opacity-90 mb-4">
         لديك 3 عقارات جديدة تهمك اليوم
       </p>

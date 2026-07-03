@@ -28,22 +28,24 @@ export async function toggleWishlistAction(propertyId) {
         if (existing) {
             await prisma.wishlist.delete({ where: { id: existing.id } });
           //  revalidatePath(`/property-details/${numericPropertyId}`);
-          //  revalidatePath("/m/favorites");
+            revalidatePath("/m/favorites");
             revalidatePath("/","layout");
-            return { success: true, added: false, message: "تمت الإزالة من المفضلة" };
+            return { success: true,error:"" };
         } else {
             await prisma.wishlist.create({
                 data: { userId: userId, propertyId: numericPropertyId }
             });
             
-           // revalidatePath("/","layout");
+           //re validatePath("/","layout");
                 revalidatePath("/m/favorites");
+                revalidatePath("/","layout");
             //revalidatePath(`/property-details/${numericPropertyId}`);
-            return { success: true, added: true, message: "تمت الإضافة إلى المفضلة" };
+            return { success: true ,error:"" };
         }
     } catch (error) {
         console.error("TOGGLE_WISHLIST_ERROR:", error);
-        return { success: false, error: "حدث خطأ في قاعدة البيانات" };
+        return { success: false ,error:"حدث خطأ في قاعدة البيانات"};
+
     }
 }
 

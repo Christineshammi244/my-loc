@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { Pencil, Trash2 } from "lucide-react";
+
+import {  Trash2 } from "lucide-react";
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import { getMyComments, deleteMyComment } from "@/app/actions/commentActions";
 
@@ -7,7 +7,7 @@ export default async function MyCommentsPage() {
   // جلب البيانات من الأكشن المجهز بالخلفية
   const myComments = await getMyComments();
 
-  const thumb = "https://cloudinary.com";
+ // const thumb = "https://cloudinary.com";
 
   return (
     <PhoneShell title="تعليقاتي">
@@ -31,20 +31,12 @@ export default async function MyCommentsPage() {
                 <div className="flex items-center gap-2">
                   <span>عقار رقم {comment.propertyId}</span>
                   <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200">
-                    <Image
-                      alt="Property thumb"
-                      src={thumb}
-                      fill
-                      className="object-cover"
-                    />
+              
                   </div>
                 </div>
 
                 {/* أزرار التحكم بالتعليق */}
                 <div className="flex gap-2">
-                  <button className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-slate-200">
-                    <Pencil className="h-4 w-4" />
-                  </button>
                   
                   <form
                     action={async () => {

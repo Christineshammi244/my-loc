@@ -27,7 +27,7 @@ export async function getNotifications() {
         createdAt: "desc", // الأحدث أولاً
         },
     });
-
+    revalidatePath("/m/notifications");
     return notifications;
     } catch (error) {
     console.error("GET_NOTIFICATIONS_ERROR:", error);
@@ -38,7 +38,8 @@ export async function getNotifications() {
 // 2. تحديث حالة الإشعار إلى "مقروء"
 export async function markAsRead(notificationId) {
     try {
-    const { userId } = await auth();
+   // const { userId } = await auth();
+        const  userId  ="user_test123456";
     if (!userId) return { success: false };
 
     await prisma.notification.update({
@@ -50,7 +51,7 @@ export async function markAsRead(notificationId) {
         },
     });
 
-    revalidatePath("/notifications");
+    revalidatePath("/m/notifications");
     return { success: true };
     } catch (error) {
     console.error("MARK_AS_READ_ERROR:", error);

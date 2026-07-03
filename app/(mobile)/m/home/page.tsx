@@ -57,7 +57,7 @@ export default async function HomeMobilePage() {
               <h4 className="font-bold text-lg text-slate-800">{property.title}</h4>
               <p className="text-xs text-slate-500">{property.city} • {property.location}</p>
               <p className="text-xl font-black text-[#1ea0df] mt-1">
-                {property.price?.toLocaleString("ar-SY")} ل.س
+                {property.price?.toLocaleString("ar-SY")} $
               </p>
             </div>
           </article>

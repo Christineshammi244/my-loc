@@ -50,9 +50,9 @@ const password = formData.get("password") as string;
 
     revalidatePath("/admin/users");
     return { success: true, user: newUser };
-  } catch (error: any) {
-    console.error("خطأ خادم البريزما أثناء إنشاء المستخدم:", error);
-    return { success: false, error: error?.message || "حدث خطأ غير متوقع" };
+  } catch (e) {
+  console.error("خطأ أثناء الرفض:", e);
+    return { success: false, error: "فشل الرفض" };
   }
 }
 // دالة التحقق من تسجيل الدخول وفك التشفير بأمان
@@ -87,9 +87,9 @@ export async function loginUserAction(formData: FormData) {
       user: { id: user.id, name: user.name, email: user.email, role: user.role } 
     };
 
-  } catch (error: any) {
-    console.error("LOGIN_ACTION_ERROR:", error);
-    return { success: false, error: "حدث خطأ غير متوقع أثناء تسجيل الدخول" };
+  } catch (e) {
+  console.error("خطأ أثناء الرفض:", e);
+    return { success: false, error: "فشل الرفض" };
   }
 }
 
@@ -125,14 +125,14 @@ export async function createPropertyAction(formData: FormData) {
     revalidatePath("/display-properties");
     revalidatePath("/admin/properties");
     return { success: true, property: newProperty };
-  } catch (error: any) {
-    console.error("خطأ بريزما عقار:", error);
-    return { success: false, error: error?.message || "فشل حفظ العقار" };
+  } catch (e) {
+      console.error("خطأ أثناء الرفض:", e);
+    return { success: false, error: "فشل الرفض" };
   }
 }
 
 // 3. حذف العقار (إضافة حماية الملكية)
-export async function deletePropertyAction(id:Number) {
+export async function deletePropertyAction(id:string) {
     try {
         const { userId } = await auth();
         if (!userId) return { success: false, error: "غير مصرح لك" };

@@ -1,73 +1,53 @@
-//import { redirect } from "next/navigation";
-//export default function Home() {
-//redirect("/admin/transactions");
-//}
-"use client";
 import Header from "@/components/mobile/Header";
 import Footer from "@/components/mobile/Footer";
-import PropertyCard from "@/components/mobile/PropertyCard";
-import { Menu, Home as HomeIcon, Bell } from "lucide-react";
-import React, { useState } from "react";
+import PropertyCardRegister from "@/components/mobile/PropertyCardRegister"; // المكون المصلح
+import  {auth}  from "@clerk/nextjs/server";// استدعاء مكتبة الجلسة الخاصة بمشروعك
+import  prisma  from "@/lib/prisma"; // استيراد Prisma
+import React from "react";
 import Sidebar from "@/components/mobile/SidebarVisit";
-
-// سنقوم بإنشاء هذا المكون الجديد الآن ليكون الكود منظماً
 import HeroSection from "@/components/mobile/HeroSection";
-export default function Home() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // بيانات تجريبية (Mock Data) مطابقة تماماً للصورة لتظهر في البطاقات
-  const properties = [
-    {
-      id: 1,
-      tag: "شقة للبيع",
-      color: "bg-[#F7B731]", // لون برتقالي مثل "شقة دوبلكس"
-      price: "250,000",
-      title: "شقة ديلوكس في المالكي",
-      loc: "دمشق، منطقة المالكي",
-      space: "180",
-      rooms: "3",
-      baths: "2",
-      img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop",
+export default async function Home() {
+  
+  const session = await auth();
+  const userId = session?.userId;
+  if (!userId) {
+    return <div>الرجاء تسجيل الدخول أولاً</div>; 
+}
+  const dbUser =  await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true }
+  });
+  
+  const userName = dbUser?.name || "Angel Harb";
+
+  
+  const properties = await prisma.property.findMany({
+    where: {
+      status: "APPROVED", 
     },
-    {
-      id: 2,
-      tag: "فيلا ملكية",
-      color: "bg-[#0984E3]", // لون أزرق مثل "فيلا مودرن"
-      price: "1,200",
-      title: "فيلا مودرن في يعفور",
-      loc: "ريف دمشق، يعفور",
-      space: "1200",
-      rooms: "مسبح",
-      baths: "حديقة",
-      img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop",
-      // https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=600&auto=format&fit=crop
+    include: {
+      images: true,    
+      comments: true,  
+      wishlists: true, 
     },
-    {
-      id: 3,
-      tag: "أرض زراعية",
-      color: "bg-[#27AE60]", // لون أخضر مثل "مزرعة مثمرة"
-      price: "90,000",
-      title: "مزرعة مثمرة في جبلة",
-      loc: "اللاذقية، ريف جبلة",
-      space: "5 دوانم",
-      isFarm: true,
-      img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600&auto=format&fit=crop",
+    orderBy: {
+      createdAt: "desc", 
     },
-  ];
+  });
 
   return (
-    // استخدام dir="rtl" لتنسيق اللغة العربية بشكل تلقائي وصحيح
     <div className="min-h-screen bg-white" dir="rtl">
-      {/* استدعاء المكون وتمرير حالات التحكم له */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <Header onMenuClick={() => setIsSidebarOpen(true)} />
+      {/* تمرير تفعيل الأقسام للواجهة */}
+      {/* ملاحظة: التحكم في فتح وإغلاق السايدبار يتم الآن بداخل المكونات أو عبر ميكانيزم السيرفر */}
+      <Sidebar isOpen={false} onClose={() => {}} />
+      <Header />
 
-      {/* 1. قسم الواجهة الأساسي (Hero Section) مع البحث */}
-      <HeroSection />
+      {/* 3. تمرير اسم المستخدم الفعلي القادم من قاعدة البيانات للـ HeroSection */}
+      <HeroSection userName={userName} />
 
-      {/* 2. قسم عرض العقارات المميزة */}
+      {/* 4. قسم عرض العقارات المميزة الحية من قاعدة البيانات */}
       <main className="max-w-[1200px] mx-auto px-4 py-12">
-        {/* عنوان القسم مع زر "عرض الكل" */}
         <div className="flex justify-between items-center mb-10">
           <h2 className="text-3xl font-bold text-gray-900">
             عقارات مميزة في سوريا
@@ -77,12 +57,27 @@ export default function Home() {
           </button>
         </div>
 
-        {/* شبكة البطاقات (Card Grid) */}
+        {/* شبكة البطاقات الديناميكية الصارمة */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {properties.map((property) => (
-            // نستخدم مكون PropertyCard الذي أصلحناه سابقاً
-            <PropertyCard key={property.id} {...property} />
-          ))}
+          {properties && properties.length > 0 ? (
+            properties.map((property) => (
+              <PropertyCardRegister 
+                key={property.id}
+                title={property.title} 
+                price={property.price.toString()} 
+                location={property.location ?? ""}
+                imageUrl={property.images && property.images.length > 0 ? property.images[0].url : "/photo_2026-05-23_20-40-28.jpg"}
+                baths={property.bathrooms}
+                beds={property.rooms ?? 0}
+                commentsCount={property.comments?.length || 0}
+                area={property.area ?? 0}
+              />
+            ))
+          ) : (
+            <p className="text-center py-10 text-sm text-gray-500 col-span-full">
+              لا توجد عقارات متاحة حالياً في قاعدة البيانات.
+            </p>
+          )}
         </div>
       </main>
 

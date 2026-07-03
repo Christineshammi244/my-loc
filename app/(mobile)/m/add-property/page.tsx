@@ -5,7 +5,7 @@ import { ArrowLeft, ImagePlus } from "lucide-react";
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import { addProperty } from "@/app/actions/propertyActions"; 
 import { useState, use, startTransition } from "react";
-
+import { CldUploadWidget , CloudinaryUploadWidgetResults} from 'next-cloudinary';
 const propertyTypes = [
   { id: "APARTMENT", name: "شقة", icon: () => <span className="text-xl">🏢</span> },
   { id: "VILLA", name: "فيلا", icon: () => <span className="text-xl">🏡</span> },
@@ -18,6 +18,7 @@ interface PageProps {
     step?: string;
     success?: string;
     type?: string;
+    floor?: string;
     title?: string;
     city?: string;
     location?: string;
@@ -25,6 +26,8 @@ interface PageProps {
     description?: string;
     area?: number;
     rooms?:  number;
+    bathrooms?:  number;
+    bedrooms?:  number;
   }>;
 }
 
@@ -44,7 +47,9 @@ export default function AddPropertyPage({ searchParams }: PageProps) {
   const currentDescription = params.description || "";
   const currentarea = params.area  || "";
   const currentrooms  = params.rooms  || "";
-  
+  const currentbathrooms  = params.bathrooms  ||   "";
+  const currentfloor  = params.floor  ||   "";
+  const currentbedrooms  = params.bedrooms ||   "";
 async function handleAction(formData: FormData) {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -111,6 +116,10 @@ async function handleAction(formData: FormData) {
                 <label className="block text-xs font-bold text-slate-500 mb-1">المدينة</label>
                 <input type="text" name="city" defaultValue={currentCity} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
               </div>
+                <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">الطابق</label>
+                <input type="text" name="city" defaultValue={currentfloor} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">الموقع / الحي</label>
                 <input type="text" name="location" defaultValue={currentLocation} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
@@ -131,6 +140,7 @@ async function handleAction(formData: FormData) {
             <input type="hidden" name="location" value={currentLocation} />
             <input type="hidden" name="area" value={currentarea} />
             <input type="hidden" name="rooms" value={currentrooms} />
+            <input type="hidden" name="bathrooms" value={currentbathrooms} />
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">السعر ($)</label>
               <input type="number" name="price" defaultValue={currentPrice} className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none" required />
@@ -147,6 +157,14 @@ async function handleAction(formData: FormData) {
               <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">عدد الغرف</label>
               <textarea name="rooms" defaultValue={currentrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
+            </div>
+              <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">عدد غرف النوم</label>
+              <textarea name="bedrooms" defaultValue={currentbedrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
+            </div>
+              <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">عدد الحمامات</label>
+              <textarea name="bathrooms" defaultValue={currentbathrooms}  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm outline-none" required />
             </div>
             <button type="submit" className="w-full min-h-11 rounded-xl bg-[#2e84d6] font-bold text-white flex items-center justify-center gap-1">
               التالي (صور العقار) <ArrowLeft className="h-4 w-4" />
@@ -166,7 +184,26 @@ async function handleAction(formData: FormData) {
             <input type="hidden" name="category" value="RESIDENTIAL" />
 
             <div className="border-2 border-dashed border-blue-200 rounded-2xl p-6 bg-slate-50/50 text-center flex flex-col items-center justify-center min-h-[180px]">
-              
+ <CldUploadWidget 
+  uploadPreset="a0skblef"
+  onSuccess={(results: CloudinaryUploadWidgetResults) => {
+    // التحقق من أن النتيجة تحتوي على معلومات الصورة بنجاح
+    if (results.info && typeof results.info !== "string" && results.info.secure_url) {
+      const url = results.info.secure_url;
+      setPreviewImages((prev) => [...prev, url]);
+    }
+  }}
+>
+  {({ open }) => (
+    <button 
+      type="button" 
+      onClick={() => open()}
+      className="mb-4 bg-blue-600 text-white px-4 py-2 rounded-xl"
+    >
+      اضغط هنا لرفع الصور
+    </button>
+  )}
+</CldUploadWidget>
               {/* شبكة الصور المختارة للمعاينة المباشرة فور الاختيار */}
               {previewImages.length > 0 ? (
                 <div className="grid grid-cols-4 gap-2 mb-4 w-full max-h-[160px] overflow-y-auto p-1">
