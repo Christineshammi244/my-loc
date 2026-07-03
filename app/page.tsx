@@ -6,13 +6,13 @@ import prisma from "@/lib/prisma";
 import React from "react";
 import Sidebar from "@/components/mobile/SidebarVisit";
 import HeroSection from "@/components/mobile/HeroSection";
-
+import{redirect} from "next/navigation";
 export default async function Home() {
   // جلب الجلسة والـ userId مباشرة من السيرفر بشكل آمن وسريع جداً
   const { userId } = await auth();
 
   if (!userId) {
-    return <div className="text-center py-10 font-bold text-slate-700">الرجاء تسجيل الدخول أولاً</div>;
+    redirect("/m/login");
   }
   const dbUser =  await prisma.user.findUnique({
     where: { id: userId },
