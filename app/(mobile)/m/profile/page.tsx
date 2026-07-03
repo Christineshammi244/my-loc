@@ -1,3 +1,4 @@
+export const dynamic ="force-dynamic";
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import { getUserProfile } from "@/app/actions/user";
 import Image from "next/image";

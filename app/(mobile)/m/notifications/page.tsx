@@ -1,3 +1,4 @@
+export const dynamic ="force-dynamic";
 import { PhoneShell } from "@/components/mobile/phone-shell";
 import { getNotifications, markAsRead } from "@/app/actions/notificationActions";
 import { CheckCircle2, MessageSquare, Info } from "lucide-react"; 
